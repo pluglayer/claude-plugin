@@ -207,10 +207,14 @@ For current-repo deployments:
 7. keep temporary deployment files inside `.pluglayer/` in the local repo
 8. if the image only exists locally, export it as an OCI archive into `.pluglayer/` and use the uploaded-image deploy flow
 9. use plain `deploy_image` only when the source image is already pullable from an allowed listed repository
-10. after push/deploy, delete:
-   - the temporary image archive
-   - any other temporary files in `.pluglayer/`
-   - the local built image if it is no longer needed
+10. after push/deploy, perform full cleanup for artifacts created during this task:
+   - delete the temporary image archive
+   - delete any other temporary files in `.pluglayer/`
+   - remove the local Docker image tags that were built only for this deploy if they are no longer needed
+   - remove task-specific stopped containers or dangling image layers created by this workflow when it is safe
+   - do not delete unrelated user images, containers, or shared caches outside the scope of this task
+
+Cleanup is required. Finishing the deploy means cleaning both filesystem artifacts and Docker artifacts created for that deploy.
 
 Do not ask the user for a prebuilt image if the current repo can be built confidently.
 Do not push images to any repository that is not listed by PlugLayer.
