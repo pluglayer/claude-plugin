@@ -144,6 +144,10 @@ When the user provides a docker-compose stack:
 - project exists
 - app name is confirmed
 - at least one ready compute path exists for the chosen placement
+- default sizing is explicit unless the user clearly asked for less:
+  - storage: at least 5 GB
+  - cpu: at least 1 core
+  - ram: at least 1 GB
 - port is known
 - app binds in a network-safe way
 - env vars are accounted for
@@ -262,12 +266,25 @@ Before redeploying an existing app:
 2. show the app name
 3. ask the user to confirm the exact app name
 4. keep the existing slug unless the user explicitly asks to change it
-5. if the user changed code, do not just restart the old image:
+5. preserve or raise sizing defaults unless the user explicitly asks to go lower:
+   - storage should stay at or above 5 GB by default
+   - cpu should stay at or above 1 core by default
+   - ram should stay at or above 1 GB by default
+   - if the current app is below those values and the user did not force lower sizing, prefer redeploying with at least those defaults
+6. if the user changed code, do not just restart the old image:
    - rebuild the image
    - use a new version/tag
    - push or upload that rebuilt image
    - redeploy the existing app with the new image
-6. only then redeploy
+7. only then redeploy
+
+## Sizing default rule
+- For deploys and redeploys, choose sensible defaults even when the user does not specify sizing.
+- Default minimum storage is 5 GB unless the user explicitly asks for less.
+- Default minimum CPU is 1 core unless the user explicitly asks for less.
+- Default minimum RAM is 1 GB unless the user explicitly asks for less.
+- If a template, estimate, or current app is already higher, keep the higher sensible value unless the user explicitly asks to reduce it.
+- Do not silently go below these defaults just because sizing was omitted.
 
 ## Domain guidance
 When explaining DNS records:

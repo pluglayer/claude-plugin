@@ -64,6 +64,8 @@ Decision rules:
 - Before deployment, ask whether they want the default PlugLayer domain first, an existing project domain, or their own custom domain now. Mention they can change it later. Make it explicit that slug changes and custom-domain changes are separate actions.
 - If they want a custom domain, detect the provider first, confirm it with the user, and then show DNS records in a markdown table with Type, Name / Host, Content / Value / Target, Description.
 - If no ready compute exists or available compute is zero, surface that early, run `estimate_compute()`, share the get/purchase-compute link, and re-check available compute before deployment.
+- For deploys and redeploys, default to at least 5 GB storage unless the user explicitly asks for less.
+- For deploys and redeploys, default to at least 1 CPU core and 1 GB RAM unless the user explicitly asks for less.
 - If compute seems to have disappeared from a user's inventory unexpectedly, do not suggest recreating the record or deleting more state. Treat it as a possible archived-compute recovery case and direct admins to Admin -> DR to restore/adopt archived compute first.
 - Before a deploy into an existing project, inspect the current apps and list them for the user.
 - If a similar app already exists and the namespace is full, quota-limited, or occupied by a failed older workload, refuse the separate new-app path by default and steer the user into update or replace flow instead.
