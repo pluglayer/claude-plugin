@@ -41,7 +41,7 @@ Core behavior:
    - domains
    - tasks
    - user context
-   - app terminal for the user's own deployed app only
+   - app terminal for the user's own deployed app only, with input capped at 10,000 characters and about 350 lines
 8. Use local repo inspection to understand code structure and runtime behavior.
 9. If a Dockerfile is missing, create one when confidence is high.
 10. Detect and understand environment variables before deployment, especially anything likely to change after deploy such as callback URLs, public API URLs, database connection strings, and app slugs.

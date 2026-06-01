@@ -186,7 +186,7 @@ When the user provides a docker-compose stack:
 - get deployment/app status
 - get task status
 - get logs when needed
-- app terminal when troubleshooting a live app
+- app terminal when troubleshooting a live app, but keep terminal input at or below 10,000 characters and about 350 lines
 - remove app when the user explicitly wants to remove it
 
 Compute through MCP is read-only. Do not try to add, archive, remove, or otherwise mutate compute inventory from the plugin/MCP surface. If the user needs more capacity, use estimate + marketplace/shared-compute guidance, or direct an admin to the platform UI for compute administration.
@@ -214,11 +214,21 @@ For current-repo deployments:
 10. after push/deploy, perform full cleanup for artifacts created during this task:
    - delete the temporary image archive
    - delete any other temporary files in `.pluglayer/`
-   - remove the local Docker image tags that were built only for this deploy if they are no longer needed
-   - remove task-specific stopped containers or dangling image layers created by this workflow when it is safe
-   - do not delete unrelated user images, containers, or shared caches outside the scope of this task
+   - remove only local Docker images that use the PlugLayer temporary tag convention and are recorded by the current task
+   - remove only task-specific stopped containers, dangling layers, and other Docker artifacts created by this PlugLayer workflow when they are recorded by the current task
+   - required image tag convention for PlugLayer-generated local images: `pluglayer-tmp/<repo-or-project-slug>:task-<task-id>-<service-slug>`
+   - required archive/export convention: store task exports only under `.pluglayer/images/<task-id>/<service-slug>.oci.tar`
+   - required ownership record: write or maintain a task manifest under `.pluglayer/manifests/<task-id>.json` listing every temporary image tag, container name, and archive path created by that task
+   - an image is eligible for cleanup only when both conditions are true:
+     1. its tag matches the exact `pluglayer-tmp/...:task-...` convention
+     2. the same tag is listed in the current task manifest under `.pluglayer/manifests/<task-id>.json`
+   - if either marker is missing, do not delete the image automatically
+   - never run machine-wide Docker cleanup as routine deploy cleanup
+   - never delete unrelated user images, containers, volumes, networks, or shared caches outside the scope of this PlugLayer task
 
 Cleanup is required. Finishing the deploy means cleaning both filesystem artifacts and Docker artifacts created for that deploy.
+Cleanup must stay scoped to PlugLayer-generated artifacts from the current task, not the user's broader Docker environment.
+Do not delete images based only on recency, size, repo similarity, or guesswork. Delete only by exact PlugLayer naming plus current-task manifest match.
 
 Do not ask the user for a prebuilt image if the current repo can be built confidently.
 Do not push images to any repository that is not listed by PlugLayer.
