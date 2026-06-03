@@ -62,7 +62,7 @@ Decision rules:
 - Always ask for the app name before deploying and suggest names that fit the project. Include `[you choose]` when helpful.
 - Treat app name and PlugLayer slug as separate values. App name is the PlugLayer app identity, while slug controls the default PlugLayer URL segment. Explain the default URL shape, for example `https://<slug>.<project>.<user>.apps.pluglayer.io`, so the user can decide whether to change the slug.
 - Before deployment, ask whether they want the default PlugLayer domain first, an existing project domain, or their own custom domain now. Mention they can change it later. Make it explicit that slug changes and custom-domain changes are separate actions.
-- If they want a custom domain, detect the provider first, confirm it with the user, and then show DNS records in a markdown table with Type, Name / Host, Content / Value / Target, Description.
+- If they want a custom domain, detect the provider first, confirm it with the user, and then show DNS records in a markdown table with Type, Name / Host, Content / Value / Target, Description. Convert the host field into the provider's UI format when needed, for example `@` for the root or `_pluglayer-verify` instead of the full hostname in GoDaddy-style UIs.
 - If no ready compute exists or available compute is zero, surface that early, run `estimate_compute()`, share the get/purchase-compute link, and re-check available compute before deployment.
 - For deploys and redeploys, default to at least 5 GB storage unless the user explicitly asks for less.
 - For deploys and redeploys, default to at least 1 CPU core and 1 GB RAM unless the user explicitly asks for less.
@@ -83,7 +83,7 @@ Decision rules:
 - MCP exposes no admin-only functions. Do not suggest plugin/admin routes or compute mutation through the MCP surface.
 - For apps, use remove semantics when the user explicitly wants removal. Do not describe end-user app deletion as archival.
 - Projects can be removed from active use through end-user MCP flows, but do not present those actions as admin workflows.
-- When helping with DNS, speak in registrar terms: Name/Host, Content/Value, and Target. Tell the user to reply after they add the records so verification can continue.
+- When helping with DNS, speak in registrar terms: Name/Host, Content/Value, and Target. If the registrar uses shorthand host labels, include both the value to enter there and the exact DNS name PlugLayer is checking. Tell the user to reply after they add the records so verification can continue.
 - Before deploy, identify likely port, env vars, and whether the app must bind to 0.0.0.0.
 - If the codebase really contains two separate full products, recommend two separate projects.
 - After deployment, retrieve project apps and suggest useful follow-up env updates, for example frontend → backend URL or backend → database connection string.

@@ -25,7 +25,11 @@ Use this skill when the user is attaching a custom domain or is confused by DNS 
 - Use `Name / Host` for the left-hand DNS field.
 - Use `Content / Value` for TXT values.
 - Use `Target` for CNAME records when the provider uses that wording.
-- Mention that some providers use `@` for the root domain.
+- Convert PlugLayer's exact DNS names into the provider's UI host format before giving final instructions.
+- For providers like GoDaddy, Namecheap, Cloudflare, and Squarespace:
+  - use `@` for the root domain
+  - use only the left-hand label for subdomains, such as `www` or `_pluglayer-verify`
+- Never tell the user to paste the full domain into the Name / Host field when that provider expects a relative label.
 
 ## Record presentation rule
 Always present the required DNS records in a markdown table with these columns:
@@ -40,15 +44,19 @@ If a description is not needed, use `-`.
 1. Add the custom domain in PlugLayer.
 2. Show the exact TXT and route records in the table.
 3. Explain where each field goes in the DNS UI for the confirmed provider.
-4. Tell the user:
+4. If the provider UI uses shorthand host labels, say both:
+   - what to enter in the provider UI
+   - the exact DNS name that PlugLayer is verifying
+5. Tell the user:
    - "After you add the records, tell me you've added them and I'll verify and continue."
-5. Verify only after they confirm.
-6. If verification fails, explain the specific mismatch instead of just saying it is pending.
+6. Verify only after they confirm.
+7. If verification fails, explain the specific mismatch instead of just saying it is pending.
 
 ## Common failure patterns
 - TXT host entered as the TXT value
 - CNAME target entered as the host
 - root domain entered incorrectly because the provider wants `@`
+- full hostname pasted into GoDaddy/Namecheap Host when the UI wanted only `_pluglayer-verify`, `www`, or `@`
 - proxy/flattening causes the route record to appear differently than expected
 
 ## Response style

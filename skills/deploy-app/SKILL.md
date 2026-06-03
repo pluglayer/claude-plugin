@@ -301,8 +301,11 @@ When explaining DNS records:
 - say `Name / Host`
 - say `Content / Value`
 - say `Target` for CNAME when needed
-- mention that some providers use `@` for the root domain
+- convert PlugLayer's exact DNS names into the confirmed provider's UI host format
+- for GoDaddy/Namecheap/Cloudflare/Squarespace, use `@` for the root and only the left-hand label like `www` or `_pluglayer-verify` for subdomains
+- never tell the user to paste the full domain into the provider Name / Host field when the UI expects a relative label
 - mention that root and `www` sometimes behave differently
+- if the provider UI uses shorthand, include both the provider entry and the exact DNS name PlugLayer is verifying
 - tailor click-path notes to the confirmed provider when possible
 
 After showing DNS instructions, tell the user:
