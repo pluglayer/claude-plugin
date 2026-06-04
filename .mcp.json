@@ -1,12 +1,12 @@
 {
   "mcpServers": {
     "pluglayer": {
-      "command": "uvx",
+      "command": "/bin/bash",
       "type": "stdio",
-      "args": ["pluglayer-mcp"],
-      "env": {
-        "PLUGLAYER_API_KEY": "${PLUGLAYER_API_KEY}"
-      }
+      "args": [
+        "-lc",
+        "if [ -f \"$HOME/.pluglayer/credentials.env\" ]; then . \"$HOME/.pluglayer/credentials.env\"; fi; exec uvx pluglayer-mcp"
+      ]
     }
   }
 }
