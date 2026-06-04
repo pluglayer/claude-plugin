@@ -5,7 +5,7 @@ This plugin connects Claude Code to PlugLayer using the published `pluglayer-mcp
 ## One-line install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pluglayer/pluglayer-claude-plugin/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/pluglayer/claude-plugin/main/install.sh | bash
 ```
 
 The installer gives the user a branded PlugLayer terminal flow, installs the Claude plugin globally, asks for a token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens), and can update or reinstall later without forcing token re-entry.
