@@ -22,13 +22,13 @@ The installer gives the user a branded PlugLayer terminal flow, installs the Cla
 ## Requirements
 1. `pluglayer-mcp` must be available through `uvx`
 2. You need a PlugLayer API token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens)
-3. The installer stores the token in `~/.pluglayer/credentials.env`, and the plugin's MCP config reads that file directly so the Claude desktop app can use PlugLayer even when it was not launched from a shell
+3. You need a PlugLayer API token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens)
 
 ## Installer behavior
 
 - Stages the plugin under `~/.pluglayer/plugins/claude/pluglayer`, registers it with `claude plugins marketplace add`, and installs it with `claude plugins install --scope user`
 - Creates a `claude-pluglayer` launcher in `~/.local/bin`
-- Saves the PlugLayer token once, then lets the user keep or replace it during later updates
+- Prompts for a PlugLayer token and lets the user keep or replace it during later updates
 - Detects the installed plugin version and offers:
   - update/reinstall PlugLayer for Claude Code
   - update the saved token only
