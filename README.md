@@ -8,7 +8,7 @@ This plugin connects Claude Code to PlugLayer using the published `pluglayer-mcp
 curl -fsSL https://raw.githubusercontent.com/pluglayer/claude-plugin/main/install.sh | bash
 ```
 
-The installer gives the user a branded PlugLayer terminal flow, installs the Claude plugin globally, asks for a token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens), and can update or reinstall later without forcing token re-entry.
+The installer gives the user a branded PlugLayer terminal flow, installs the Claude plugin into Claude Code's user plugin scope, asks for a token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens), and can update or reinstall later without forcing token re-entry.
 
 ## What it includes
 - PlugLayer MCP wiring via `.mcp.json`
@@ -22,11 +22,11 @@ The installer gives the user a branded PlugLayer terminal flow, installs the Cla
 ## Requirements
 1. `pluglayer-mcp` must be available through `uvx`
 2. You need a PlugLayer API token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens)
-3. The installer stores the token in `~/.pluglayer/credentials.env` and launches Claude through `claude-pluglayer`
+3. The installer stores the token in `~/.pluglayer/credentials.env`, and the plugin's MCP config reads that file directly so the Claude desktop app can use PlugLayer even when it was not launched from a shell
 
 ## Installer behavior
 
-- Installs the plugin into a global Claude-facing folder under `~/.pluglayer/plugins/claude/pluglayer`
+- Stages the plugin under `~/.pluglayer/plugins/claude/pluglayer`, registers it with `claude plugins marketplace add`, and installs it with `claude plugins install --scope user`
 - Creates a `claude-pluglayer` launcher in `~/.local/bin`
 - Saves the PlugLayer token once, then lets the user keep or replace it during later updates
 - Detects the installed plugin version and offers:
@@ -55,9 +55,10 @@ export PLUGLAYER_API_KEY="plk_your_token_here"
 claude --plugin-dir .
 ```
 
-6. Inside Claude Code, run `/mcp` and confirm the PlugLayer server is connected.
-7. Run `/agents` and confirm `pluglayer-deploy` is available.
-8. Use `/reload-plugins` after editing plugin files.
+6. Restart Claude Code after install so the user-scoped plugin registry refreshes.
+7. Inside Claude Code, run `/mcp` and confirm the PlugLayer server is connected.
+8. Run `/agents` and confirm `pluglayer-deploy` is available.
+9. Use `/reload-plugins` after editing plugin files during development.
 
 ## Run locally
 From the plugin repository root:

@@ -34,6 +34,7 @@ METADATA_FILE=""
 AVAILABLE_VERSION=""
 INSTALLED_VERSION=""
 INSTALLED_AT=""
+CLAUDE_MARKETPLACE_NAME="pluglayer"
 SAVED_TOKEN=""
 SAVED_API_URL="${DEFAULT_API_URL}"
 PLUGLAYER_API_KEY="${PLUGLAYER_API_KEY:-}"
@@ -444,8 +445,12 @@ install_claude() {
   rm -rf "${TARGET_PLUGIN_DIR}"
   mkdir -p "${TARGET_PLUGIN_DIR}"
   cp -R "${STAGED_PLUGIN_DIR}/." "${TARGET_PLUGIN_DIR}/"
-  write_launcher "${TARGET_LAUNCHER}" "claude" "${TARGET_PLUGIN_DIR}" "--plugin-dir"
-  success "Claude Code now has PlugLayer at ${TARGET_PLUGIN_DIR}"
+  claude plugins uninstall "${PLUGIN_NAME}" --scope user >/dev/null 2>&1 || true
+  claude plugins marketplace remove "${CLAUDE_MARKETPLACE_NAME}" >/dev/null 2>&1 || true
+  claude plugins marketplace add "${TARGET_PLUGIN_DIR}"
+  claude plugins install "${PLUGIN_NAME}@${CLAUDE_MARKETPLACE_NAME}" --scope user
+  write_launcher "${TARGET_LAUNCHER}" "claude"
+  success "Claude Code now has PlugLayer installed in the user plugin scope"
 }
 
 upsert_codex_marketplace() {
@@ -556,6 +561,10 @@ post_install_summary() {
   case "${TARGET}" in
     codex)
       printf 'Marketplace: %s\n' "${MARKETPLACE_NAME}"
+      printf 'Plugin source: %s\n' "${TARGET_PLUGIN_DIR}"
+      ;;
+    claude)
+      printf 'Marketplace: %s\n' "${CLAUDE_MARKETPLACE_NAME}"
       printf 'Plugin source: %s\n' "${TARGET_PLUGIN_DIR}"
       ;;
     *)

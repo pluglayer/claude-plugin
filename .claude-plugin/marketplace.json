@@ -1,0 +1,16 @@
+{
+  "name": "pluglayer",
+  "owner": {
+    "name": "PlugLayer",
+    "email": "hello@pluglayer.com"
+  },
+  "plugins": [
+    {
+      "name": "pluglayer",
+      "description": "Deploy, operate, and recover apps on PlugLayer from Claude Code.",
+      "category": "deployment",
+      "source": "./",
+      "homepage": "https://pluglayer.com"
+    }
+  ]
+}
