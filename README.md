@@ -2,6 +2,14 @@
 
 This plugin connects Claude Code to PlugLayer using the published `pluglayer-mcp` package.
 
+## One-line install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pluglayer/pluglayer-claude-plugin/main/install.sh | bash
+```
+
+The installer gives the user a branded PlugLayer terminal flow, installs the Claude plugin globally, asks for a token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens), and can update or reinstall later without forcing token re-entry.
+
 ## What it includes
 - PlugLayer MCP wiring via `.mcp.json`
 - A default `pluglayer-deploy` agent
@@ -13,17 +21,28 @@ This plugin connects Claude Code to PlugLayer using the published `pluglayer-mcp
 
 ## Requirements
 1. `pluglayer-mcp` must be available through `uvx`
-2. You need a PlugLayer API token from the PlugLayer Settings page
-3. Export the token before launching Claude Code:
+2. You need a PlugLayer API token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens)
+3. The installer stores the token in `~/.pluglayer/credentials.env` and launches Claude through `claude-pluglayer`
+
+## Installer behavior
+
+- Installs the plugin into a global Claude-facing folder under `~/.pluglayer/plugins/claude/pluglayer`
+- Creates a `claude-pluglayer` launcher in `~/.local/bin`
+- Saves the PlugLayer token once, then lets the user keep or replace it during later updates
+- Detects the installed plugin version and offers:
+  - update/reinstall PlugLayer for Claude Code
+  - update the saved token only
+
+## Local install from this repo
 
 ```bash
-export PLUGLAYER_API_KEY="plk_your_token_here"
+./install.sh
 ```
 
-## Install step by step
+## Manual install step by step
 1. Clone or download this plugin folder.
 2. Make sure `uvx` can run `pluglayer-mcp`.
-3. Create a PlugLayer API token in the PlugLayer Settings page.
+3. Create a PlugLayer API token in [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens).
 4. Export the token in the shell where you will launch Claude Code:
 
 ```bash
