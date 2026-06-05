@@ -54,8 +54,19 @@ color() {
   printf '\033[%sm%s\033[0m' "$1" "$2"
 }
 
+supports_truecolor() {
+  case "${COLORTERM:-}" in
+    truecolor|24bit) return 0 ;;
+  esac
+  return 1
+}
+
 cyan() {
-  color '38;2;2;183;207' "$1"
+  if supports_truecolor; then
+    color '38;2;2;183;207' "$1"
+  else
+    color '38;5;45' "$1"
+  fi
 }
 
 green() {
@@ -573,17 +584,80 @@ post_install_summary() {
   esac
 }
 
-launch_now() {
-  if [ ! -t 0 ] && ! tty_available; then
+restart_display_name() {
+  case "${TARGET}" in
+    claude) printf '%s' 'Claude Code' ;;
+    codex) printf '%s' 'Codex' ;;
+    cursor) printf '%s' 'Cursor' ;;
+  esac
+}
+
+restart_app_name() {
+  case "${TARGET}" in
+    claude) printf '%s' 'Claude' ;;
+    codex) printf '%s' 'Codex' ;;
+    cursor) printf '%s' 'Cursor' ;;
+  esac
+}
+
+restart_instructions() {
+  case "${TARGET}" in
+    claude)
+      printf '%s\n' "Terminal or CLI: exit any running Claude Code session, then start a new one."
+      printf '%s\n' "Desktop app: fully quit and reopen Claude to finish loading the PlugLayer plugin."
+      ;;
+    codex)
+      printf '%s\n' "Terminal or CLI: exit any running Codex session, then start a new one."
+      printf '%s\n' "Desktop app: fully quit and reopen Codex to refresh the personal marketplace and load the PlugLayer plugin."
+      ;;
+    cursor)
+      printf '%s\n' "Desktop app: restart Cursor, or use Developer: Reload Window, to finish loading the PlugLayer plugin."
+      ;;
+  esac
+}
+
+can_restart_app_now() {
+  [ "$(uname -s)" = "Darwin" ] || return 1
+  command -v osascript >/dev/null 2>&1 || return 1
+  command -v open >/dev/null 2>&1 || return 1
+}
+
+restart_app_now() {
+  local app_name
+  app_name="$(restart_app_name)"
+
+  step "Restarting $(restart_display_name)"
+  osascript <<EOF >/dev/null 2>&1
+tell application "System Events"
+  set isRunning to exists process "${app_name}"
+end tell
+if isRunning then
+  tell application "${app_name}" to quit
+  delay 1
+end if
+EOF
+  open -a "${app_name}" >/dev/null 2>&1 || die "PlugLayer could not reopen ${app_name} automatically. Please restart it yourself."
+  success "$(restart_display_name) is reopening"
+}
+
+finish_with_restart_guidance() {
+  headline "Restart needed"
+  restart_instructions
+
+  if ! tty_available || ! can_restart_app_now; then
+    printf '%s\n' "$(muted "If you're using the desktop app, restart it before using PlugLayer.")"
     return
   fi
 
-  if ! confirm_yes_default "Launch ${TARGET_LABEL} with PlugLayer now?"; then
-    return
-  fi
+  local choice
+  choice="$(menu_choice "How would you like to continue?" \
+    "PlugLayer restarts the desktop app for me" \
+    "I'll restart it myself")"
 
-  step "Launching ${TARGET_LABEL}"
-  exec "${TARGET_LAUNCHER}" "$@"
+  case "${choice}" in
+    1) restart_app_now ;;
+    2) printf '%s\n' "$(muted "If you're using the desktop app, restart it before using PlugLayer. If you're using the CLI, start a fresh session.")" ;;
+  esac
 }
 
 show_status() {
@@ -615,7 +689,7 @@ main() {
   if [ -z "${INSTALLED_VERSION}" ]; then
     install_target
     post_install_summary
-    launch_now "$@"
+    finish_with_restart_guidance
     exit 0
   fi
 
@@ -636,10 +710,11 @@ main() {
     1)
       install_target
       post_install_summary
-      launch_now "$@"
+      finish_with_restart_guidance
       ;;
     2)
       update_token_only
+      finish_with_restart_guidance
       ;;
     3)
       printf '%s\n' "$(muted "No changes made.")"
