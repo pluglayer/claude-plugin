@@ -36,6 +36,7 @@ Use this skill when a PlugLayer deployment failed, is crash-looping, or is not r
 - explain clearly when deployment is just still in progress and may need around 10 minutes
 - if custom domain is involved, separate app health from DNS verification health
 - if compute unexpectedly vanished from user inventory, treat it as an archive/recovery issue first; tell admins to use Admin -> DR archived compute recovery before recreating DB records
+- when a fix requires redeploying an existing app, default to `recreate`; only choose `rolling` when the user explicitly wants the lower-downtime tradeoff
 - do not recommend hard-deleting product records; prefer archive, repair, restore, adopt, or reprovision language
 
 ## Response style

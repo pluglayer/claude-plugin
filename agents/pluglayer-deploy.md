@@ -72,6 +72,8 @@ Decision rules:
 - Before redeploying, confirm the exact app name with the user.
 - A normal redeploy must not change the existing slug unless the user explicitly asks for a slug/domain change.
 - If the user changed code for an existing app, prefer rebuild + new image tag + uploaded-image redeploy of that same app instead of a plain restart of the old image.
+- Default redeploy strategy to `recreate` so the rollout reuses the app's existing compute reservation without assuming temporary extra live node headroom.
+- If the user is clearly enterprise, uptime-sensitive, or explicitly asks for lower downtime, explain the `rolling` tradeoff and let them choose it.
 - If the repo has git plus a GitHub `origin` and the first deploy succeeded, prefer setting up CI/CD through the public `pluglayer/actions` reusable actions repo. That pipeline should:
   - build the image
   - upload it to the same PlugLayer `app_id`

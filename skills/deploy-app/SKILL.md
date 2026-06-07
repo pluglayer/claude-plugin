@@ -276,6 +276,8 @@ Before redeploying an existing app:
 2. show the app name
 3. ask the user to confirm the exact app name
 4. keep the existing slug unless the user explicitly asks to change it
+4a. default redeploy strategy to `recreate` so PlugLayer does not require temporary extra live compute just to roll out a new image
+4b. only switch to `rolling` when the user explicitly asks for lower downtime or when the user is clearly enterprise / uptime-sensitive and accepts the temporary live-headroom tradeoff
 5. preserve or raise sizing defaults unless the user explicitly asks to go lower:
    - storage should stay at or above 5 GB by default
    - cpu should stay at or above 1 core by default
