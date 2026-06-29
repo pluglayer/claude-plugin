@@ -1,0 +1,7 @@
+{
+  "agent": "pluglayer-deploy",
+  "subagentStatusLine": {
+    "type": "command",
+    "command": "echo PlugLayer Deploy Agent"
+  }
+}
