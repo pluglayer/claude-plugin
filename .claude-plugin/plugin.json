@@ -1,0 +1,17 @@
+{
+  "name": "pluglayer",
+  "version": "1.1.4",
+  "description": "Deploy, operate, and recover apps on PlugLayer from Claude Code.",
+  "author": {
+    "name": "PlugLayer",
+    "url": "https://pluglayer.com"
+  },
+  "homepage": "https://pluglayer.com",
+  "keywords": [
+    "pluglayer",
+    "deployment",
+    "kubernetes",
+    "docker",
+    "mcp"
+  ]
+}
