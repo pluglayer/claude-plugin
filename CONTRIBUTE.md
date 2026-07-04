@@ -22,6 +22,7 @@ This repository contains the PlugLayer Claude plugin, its MCP wiring, and user-f
 - Keep contributions focused and easy to review
 - For major skill changes, open an issue or discussion first
 - Keep every Python source file at or below 500 lines; split larger scripts by responsibility while preserving their CLI and output contracts
+- Bump `.claude-plugin/plugin.json` whenever any file in this plugin changes, including docs, skills, installer scripts, MCP config, agents, or metadata
 
 ## Good contribution areas
 

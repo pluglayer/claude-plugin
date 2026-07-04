@@ -8,7 +8,7 @@ This plugin connects Claude Code to PlugLayer using the published `pluglayer-mcp
 curl -fsSL https://raw.githubusercontent.com/pluglayer/claude-plugin/main/install.sh | bash
 ```
 
-The installer gives the user a branded PlugLayer terminal flow, installs the Claude plugin into Claude Code's user plugin scope, asks for a token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens), and can update or reinstall later without forcing token re-entry.
+The installer gives the user a branded PlugLayer terminal flow, stages the Claude plugin, asks for a token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens), and can update or reinstall later without forcing token re-entry. It does not require the Claude Code CLI: when `claude` is available, it also registers the plugin in Claude Code's user plugin scope and creates a `claude-pluglayer` launcher; when only the desktop app is installed, it writes Claude's local plugin registry files and a versioned cache copy so the app can load PlugLayer after restart.
 
 ## What it includes
 - PlugLayer MCP wiring via `.mcp.json`
@@ -20,14 +20,15 @@ The installer gives the user a branded PlugLayer terminal flow, installs the Cla
   - custom domain guidance
 
 ## Requirements
-1. `pluglayer-mcp` must be available through `uvx`
-2. You need a PlugLayer API token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens)
-3. You need a PlugLayer API token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens)
+1. `uvx` must be available where Claude Code runs so the PlugLayer MCP can start.
+2. `pluglayer-mcp` must be available through `uvx`.
+3. You need a PlugLayer API token from [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens).
 
 ## Installer behavior
 
-- Stages the plugin under `~/.pluglayer/plugins/claude/pluglayer`, registers it with `claude plugins marketplace add`, and installs it with `claude plugins install --scope user`
-- Creates a `claude-pluglayer` launcher in `~/.local/bin`
+- Stages the plugin under `~/.pluglayer/plugins/claude/pluglayer`
+- If the `claude` CLI exists, registers it with `claude plugins marketplace add`, installs it with `claude plugins install --scope user`, and creates a `claude-pluglayer` launcher in `~/.local/bin`
+- If only the Claude desktop app exists, updates `~/.claude/plugins/known_marketplaces.json`, `~/.claude/plugins/installed_plugins.json`, and the local plugin cache for desktop loading after restart
 - Prompts for a PlugLayer token and lets the user keep or replace it during later updates
 - Detects the installed plugin version and offers:
   - update/reinstall PlugLayer for Claude Code
@@ -43,19 +44,19 @@ The installer gives the user a branded PlugLayer terminal flow, installs the Cla
 1. Clone or download this plugin folder.
 2. Make sure `uvx` can run `pluglayer-mcp`.
 3. Create a PlugLayer API token in [portal.pluglayer.com/tokens](https://portal.pluglayer.com/tokens).
-4. Export the token in the shell where you will launch Claude Code:
+4. Export the token in the shell or desktop-app environment where Claude Code will launch the MCP:
 
 ```bash
 export PLUGLAYER_API_KEY="plk_your_token_here"
 ```
 
-5. Launch Claude Code with this plugin directory:
+5. For CLI use, launch Claude Code with this plugin directory:
 
 ```bash
 claude --plugin-dir .
 ```
 
-6. Restart Claude Code after install so the user-scoped plugin registry refreshes.
+6. For desktop use, fully quit and reopen Claude Code after install so it reloads `~/.claude/plugins/installed_plugins.json`.
 7. Inside Claude Code, run `/mcp` and confirm the PlugLayer server is connected.
 8. Run `/agents` and confirm `pluglayer-deploy` is available.
 9. Use `/reload-plugins` after editing plugin files during development.
@@ -71,6 +72,8 @@ Then inside Claude Code:
 - run `/mcp` to confirm the PlugLayer server is connected
 - run `/agents` to confirm `pluglayer-deploy` is available
 - use `/reload-plugins` after editing plugin files
+
+Desktop-only users do not need this CLI command. Use the installer and restart the desktop app so it reloads the local plugin registry.
 
 ## MCP configuration used by this plugin
 
