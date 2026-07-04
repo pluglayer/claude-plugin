@@ -462,7 +462,9 @@ print(payload.get("name", "personal"))
 PY
 )"
       fi
-      codex plugin remove "${PLUGIN_NAME}@${MARKETPLACE_NAME}" >/dev/null 2>&1 || true
+      if command -v codex >/dev/null 2>&1; then
+        codex plugin remove "${PLUGIN_NAME}@${MARKETPLACE_NAME}" >/dev/null 2>&1 || true
+      fi
       if [ "${INSTALLING_FROM_TARGET_DIR}" -eq 0 ]; then
         rm -rf "${TARGET_PLUGIN_DIR}"
       fi
@@ -472,17 +474,92 @@ PY
 
 install_claude() {
   step "Installing PlugLayer into Claude Code"
-  require_cmd claude
   ensure_uv
 
   mkdir -p "${TARGET_PLUGIN_DIR}"
   cp -R "${STAGED_PLUGIN_DIR}/." "${TARGET_PLUGIN_DIR}/"
-  claude plugins uninstall "${PLUGIN_NAME}" --scope user >/dev/null 2>&1 || true
-  claude plugins marketplace remove "${CLAUDE_MARKETPLACE_NAME}" >/dev/null 2>&1 || true
-  claude plugins marketplace add "${TARGET_PLUGIN_DIR}"
-  claude plugins install "${PLUGIN_NAME}@${CLAUDE_MARKETPLACE_NAME}" --scope user
-  write_launcher "${TARGET_LAUNCHER}" "claude"
-  success "Claude Code now has PlugLayer installed in the user plugin scope"
+  if command -v claude >/dev/null 2>&1; then
+    claude plugins uninstall "${PLUGIN_NAME}" --scope user >/dev/null 2>&1 || true
+    claude plugins marketplace remove "${CLAUDE_MARKETPLACE_NAME}" >/dev/null 2>&1 || true
+    claude plugins marketplace add "${TARGET_PLUGIN_DIR}"
+    claude plugins install "${PLUGIN_NAME}@${CLAUDE_MARKETPLACE_NAME}" --scope user
+    write_launcher "${TARGET_LAUNCHER}" "claude"
+    success "Claude Code CLI now has PlugLayer installed in the user plugin scope"
+  else
+    upsert_claude_desktop_registry
+    warn "Claude Code CLI was not found. The desktop plugin registry was updated; no CLI launcher was created."
+    success "Claude Code now has PlugLayer registered for desktop use"
+  fi
+}
+
+upsert_claude_desktop_registry() {
+  local claude_plugins_dir="${HOME}/.claude/plugins"
+  local cache_plugin_dir="${claude_plugins_dir}/cache/${CLAUDE_MARKETPLACE_NAME}/${PLUGIN_NAME}/${AVAILABLE_VERSION}"
+  local known_marketplaces_file="${claude_plugins_dir}/known_marketplaces.json"
+  local installed_plugins_file="${claude_plugins_dir}/installed_plugins.json"
+
+  mkdir -p "${cache_plugin_dir}"
+  cp -R "${STAGED_PLUGIN_DIR}/." "${cache_plugin_dir}/"
+
+  python3 - \
+    "${known_marketplaces_file}" \
+    "${installed_plugins_file}" \
+    "${CLAUDE_MARKETPLACE_NAME}" \
+    "${PLUGIN_NAME}" \
+    "${TARGET_PLUGIN_DIR}" \
+    "${cache_plugin_dir}" \
+    "${AVAILABLE_VERSION}" <<'PY'
+import json
+import os
+import sys
+from datetime import datetime, timezone
+
+known_path, installed_path, marketplace_name, plugin_name, source_dir, install_dir, version = sys.argv[1:]
+now = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+os.makedirs(os.path.dirname(known_path), exist_ok=True)
+if os.path.exists(known_path):
+    with open(known_path, "r", encoding="utf-8") as handle:
+        known = json.load(handle)
+else:
+    known = {}
+
+known[marketplace_name] = {
+    "source": {"source": "directory", "path": source_dir},
+    "installLocation": source_dir,
+    "lastUpdated": now,
+}
+
+with open(known_path, "w", encoding="utf-8") as handle:
+    json.dump(known, handle, indent=2)
+    handle.write("\n")
+
+if os.path.exists(installed_path):
+    with open(installed_path, "r", encoding="utf-8") as handle:
+        installed = json.load(handle)
+else:
+    installed = {"version": 2, "plugins": {}}
+
+installed.setdefault("version", 2)
+plugins = installed.setdefault("plugins", {})
+key = f"{plugin_name}@{marketplace_name}"
+entries = plugins.setdefault(key, [])
+previous = next((entry for entry in entries if entry.get("scope") == "user"), {})
+entry = {
+    "scope": "user",
+    "installPath": install_dir,
+    "version": version,
+    "installedAt": previous.get("installedAt", now),
+    "lastUpdated": now,
+}
+entries[:] = [item for item in entries if item.get("scope") != "user"]
+entries.append(entry)
+
+with open(installed_path, "w", encoding="utf-8") as handle:
+    json.dump(installed, handle, indent=2)
+    handle.write("\n")
+PY
+  success "Claude Code desktop registry points to ${cache_plugin_dir}"
 }
 
 upsert_codex_marketplace() {
@@ -547,12 +624,16 @@ PY
 
 install_codex() {
   step "Installing PlugLayer into the Codex personal marketplace"
-  require_cmd codex
   ensure_uv
   upsert_codex_marketplace
-  codex plugin add "${PLUGIN_NAME}@${MARKETPLACE_NAME}"
-  write_launcher "${TARGET_LAUNCHER}" "codex"
-  success "Codex now has PlugLayer installed from the ${MARKETPLACE_NAME} marketplace"
+  if command -v codex >/dev/null 2>&1; then
+    codex plugin add "${PLUGIN_NAME}@${MARKETPLACE_NAME}"
+    write_launcher "${TARGET_LAUNCHER}" "codex"
+    success "Codex CLI now has PlugLayer installed from the ${MARKETPLACE_NAME} marketplace"
+  else
+    warn "Codex CLI was not found. The personal marketplace was updated for the desktop app; no CLI launcher was created."
+  fi
+  success "Codex now has PlugLayer available from the ${MARKETPLACE_NAME} marketplace"
 }
 
 install_cursor() {
@@ -587,7 +668,11 @@ post_install_summary() {
   headline "All set"
   printf 'Installed version: %s\n' "${AVAILABLE_VERSION}"
   printf 'Saved token: %s\n' "$(mask_token "${PLUGLAYER_API_KEY}")"
-  printf 'Launcher: %s\n' "${TARGET_LAUNCHER}"
+  if [ -x "${TARGET_LAUNCHER}" ]; then
+    printf 'CLI launcher: %s\n' "${TARGET_LAUNCHER}"
+  else
+    printf 'CLI launcher: not created; the desktop app can use the installed plugin files directly\n'
+  fi
   case "${TARGET}" in
     codex)
       printf 'Marketplace: %s\n' "${MARKETPLACE_NAME}"
