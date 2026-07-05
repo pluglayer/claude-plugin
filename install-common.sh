@@ -234,7 +234,7 @@ menu_choice() {
     if tty_available; then
       IFS= read -r option < /dev/tty
     else
-      IFS= read -r option
+      IFS= read -r option || die "Interactive input is required. Re-run this installer in a terminal."
     fi
     case "${option}" in
       ''|*[!0-9]*) ;;
