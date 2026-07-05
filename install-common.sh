@@ -389,7 +389,7 @@ prompt_for_token() {
   printf '%s\n' "$(yellow "Grab a PlugLayer token from ${PORTAL_TOKENS_URL}")"
   PLUGLAYER_API_KEY="$(read_secret 'Paste your PlugLayer token and press Enter: ')"
   [ -n "${PLUGLAYER_API_KEY}" ] || die "A PlugLayer token is required."
-  PLUGLAYER_API_URL="${SAVED_API_URL:-${DEFAULT_API_URL}}"
+  PLUGLAYER_API_URL="${DEFAULT_API_URL}"
 }
 
 resolve_token_for_install() {
