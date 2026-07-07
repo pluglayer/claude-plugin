@@ -63,7 +63,9 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
    - Description
 10. Check compute availability.
    - If sizing is unclear, call `estimate_compute`.
+   - Prefer `get_compute_summary(project_id=...)` for deploys into an existing project: it shows the nodes attached to that project and per-node usage. A dedicated node serves exactly one project; shared PlugLayer nodes serve many projects from the user's shared reservation.
    - If compute is missing or zero, call `estimate_compute`, offer PlugLayer compute, share the compute link, and stop deployment until the user completes that step.
+   - If the user needs a custom slice of shared capacity instead of a whole node, call `get_shared_compute_pricing` and direct them to the web app: Compute -> Add Compute -> Buy shared compute (purchasing stays in the web app; MCP is read-only for compute).
    - After the user says they added or purchased compute, always check available compute again before deploying.
 11. Check whether this project already has apps.
    - List the available apps for the user.
