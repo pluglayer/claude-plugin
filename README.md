@@ -114,4 +114,4 @@ For image deploys, the plugin should prefer PlugLayer's managed mirror flow so C
 
 For mirrored image deploys, the plugin relies on admin-configured registries stored in PlugLayer itself. Users do not pass registry credentials through the plugin.
 
-This plugin does not expose PlugLayer admin-only tools. It is scoped to end-user app/project/domain/task flows. Compute is read-only through MCP, users can remove their own apps through MCP, and project removal stays within end-user project flows rather than admin actions.
+This plugin does not expose PlugLayer admin-only tools. It is scoped to end-user app/project/domain/task flows. Compute inventory and purchasing are read-only, while project owners may attach/detach existing dedicated nodes through backend-guarded tools; users can remove their own apps through MCP, and project removal stays within end-user project flows rather than admin actions.
