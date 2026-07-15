@@ -1,7 +1,7 @@
 {
   "name": "pluglayer",
-  "version": "1.1.8",
-  "description": "Deploy, operate, and recover apps on PlugLayer from Claude Code.",
+  "version": "1.1.10",
+  "description": "Deploy, operate, recover, and share product feedback on PlugLayer from Claude Code.",
   "author": {
     "name": "PlugLayer",
     "url": "https://pluglayer.com"

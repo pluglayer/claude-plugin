@@ -64,9 +64,10 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
 10. Check compute availability.
    - If sizing is unclear, call `estimate_compute`.
    - Prefer `get_compute_summary(project_id=...)` for deploys into an existing project: it shows the nodes attached to that project and per-node usage. A dedicated node serves exactly one project; shared PlugLayer nodes serve many projects from the user's shared reservation.
-   - If compute is missing or zero, call `estimate_compute`, offer PlugLayer compute, share the compute link, and stop deployment until the user completes that step.
-   - If the user needs a custom slice of shared capacity instead of a whole node, call `get_shared_compute_pricing` and direct them to the web app: Compute -> Add Compute -> Buy shared compute (purchasing stays in the web app; MCP is read-only for compute).
-   - After the user says they added or purchased compute, always check available compute again before deploying.
+   - If no attached node can fit the app, call `list_attachable_project_nodes(project_id)`. If a Ready unassigned node fits, explain the choice and offer `attach_node_to_project`; only the project owner may attach it.
+   - If no existing node fits, call `estimate_compute`, explain that this project needs another node, offer PlugLayer compute, share the compute link, and stop deployment until capacity is attached.
+   - If the user needs a custom slice of shared capacity instead of a whole node, call `get_shared_compute_pricing` and direct them to the web app: Compute -> Add Compute -> Buy shared compute (purchasing stays in the web app).
+   - After the user attaches or purchases compute, always call `get_compute_summary(project_id=...)` again. Deploy only when an attached Ready node has enough free CPU, RAM, storage, and GPU for the app.
 11. Check whether this project already has apps.
    - List the available apps for the user.
    - If one likely matches the intended deploy target, ask whether they want to update it, replace it, or add a separate new app.
@@ -145,7 +146,7 @@ When the user provides a docker-compose stack:
 ## Required checks before deploy
 - project exists
 - app name is confirmed
-- at least one ready compute path exists for the chosen placement
+- at least one Ready node attached to the project has enough free CPU, RAM, storage, and GPU for the chosen placement
 - default sizing is explicit unless the user clearly asked for less:
   - storage: at least 5 GB
   - cpu: at least 1 core
@@ -170,6 +171,9 @@ When the user provides a docker-compose stack:
 - list PlugLayer compute options
 - get my available compute
 - get compute summary
+- list attachable project nodes
+- attach a node to a project when the project owner confirms
+- detach a node from a project only with explicit confirmation and only when it has no active project apps
 - list registries
 - deploy image
 - upload image archive and deploy
@@ -191,7 +195,7 @@ When the user provides a docker-compose stack:
 - app terminal when troubleshooting a live app, but keep terminal input at or below 10,000 characters and about 350 lines
 - remove app when the user explicitly wants to remove it
 
-Compute through MCP is read-only. Do not try to add, archive, remove, or otherwise mutate compute inventory from the plugin/MCP surface. If the user needs more capacity, use estimate + marketplace/shared-compute guidance, or direct an admin to the platform UI for compute administration.
+Compute inventory, purchasing, archival, and removal remain read-only through MCP. The deliberate exception is owner-only project attachment: use the attach/detach tools to associate an existing dedicated node with one project. Never detach without explicit confirmation, and never bypass the backend's active-app safety check. If the project still needs capacity, use estimate + marketplace/shared-compute guidance or the platform UI.
 MCP exposes no admin-only functions. Stay within end-user actions only.
 
 ## Local repo deploy default
