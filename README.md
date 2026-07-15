@@ -18,6 +18,8 @@ The installer gives the user a branded PlugLayer terminal flow, stages the Claud
   - deployment to PlugLayer
   - deployment failure diagnosis
   - custom domain guidance
+  - safe product feedback submission and tracking
+- Focused deploy and feedback agents
 
 ## Requirements
 1. `uvx` must be available where Claude Code runs so the PlugLayer MCP can start.
@@ -58,7 +60,7 @@ claude --plugin-dir .
 
 6. For desktop use, fully quit and reopen Claude Code after install so it reloads `~/.claude/plugins/installed_plugins.json`.
 7. Inside Claude Code, run `/mcp` and confirm the PlugLayer server is connected.
-8. Run `/agents` and confirm `pluglayer-deploy` is available.
+8. Run `/agents` and confirm `pluglayer-deploy` and `pluglayer-feedback` are available.
 9. Use `/reload-plugins` after editing plugin files during development.
 
 ## Run locally
@@ -98,6 +100,7 @@ Desktop-only users do not need this CLI command. Use the installer and restart t
 - "Build this repo, deploy it to PlugLayer, and use the default domain for now."
 - "Help me attach my custom domain and explain exactly what to put in my DNS provider."
 - "Why did this PlugLayer deploy fail? Check logs and fix it."
+- "Report this PlugLayer problem and include only safe diagnostic context."
 
 ## Current scope
 This plugin is strongest for:
@@ -107,6 +110,7 @@ This plugin is strongest for:
 - docker-compose deployments
 - failure diagnosis using PlugLayer logs plus local repo inspection
 - custom domain onboarding and verification help
+- authenticated feedback submission and ticket-status checks
 
 For DNS-heavy flows, the plugin should translate PlugLayer's exact DNS names into registrar-friendly host entries when needed, such as `@` for the root domain or `_pluglayer-verify` instead of `_pluglayer-verify.example.com` in GoDaddy-style UIs.
 
@@ -114,4 +118,4 @@ For image deploys, the plugin should prefer PlugLayer's managed mirror flow so C
 
 For mirrored image deploys, the plugin relies on admin-configured registries stored in PlugLayer itself. Users do not pass registry credentials through the plugin.
 
-This plugin does not expose PlugLayer admin-only tools. It is scoped to end-user app/project/domain/task flows. Compute is read-only through MCP, users can remove their own apps through MCP, and project removal stays within end-user project flows rather than admin actions.
+This plugin does not expose PlugLayer admin-only tools. It is scoped to end-user app/project/domain/task flows. Compute inventory and purchasing are read-only, while project owners may attach/detach existing dedicated nodes through backend-guarded tools; users can remove their own apps through MCP, and project removal stays within end-user project flows rather than admin actions.
