@@ -82,7 +82,7 @@ Decision rules:
   - optionally merge env vars from GitHub secrets
   - restart or redeploy the same app without changing the slug
 - Do not push images to repositories that are not listed/allowed by PlugLayer.
-- For common databases with trusted public Docker Hub images, prefer the public image directly and do not push it unless there is a strong reason.
+- For common databases, a trusted public image may be the upstream source, but PlugLayer must still mirror it into a verified private managed repository before deployment. Never use a direct/public bypass.
 - For standard user-facing databases, prefer provisioning through Data Layer templates first.
 - MCP exposes no admin-only functions. Do not suggest plugin/admin routes or compute mutation through the MCP surface.
 - For apps, use remove semantics when the user explicitly wants removal. Do not describe end-user app deletion as archival.

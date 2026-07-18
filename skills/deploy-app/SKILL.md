@@ -82,7 +82,7 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
    - local build + image deploy when the current repo should be shipped now
    - Docker image when an image already exists in an allowed listed repository
    - smart docker-compose decomposition when multiple services should run together
-   - public Docker Hub image directly for standard databases when a trusted public image already exists
+   - trusted upstream image for standard databases; PlugLayer still mirrors it into a verified private managed repository before deployment
    - Data Layer provisioning when the user needs a database template such as MongoDB, Postgres, MySQL, or Redis
 14. Deploy.
 15. Tell the user deployment usually takes around 10 minutes and offer to check status later.
@@ -240,8 +240,8 @@ Do not ask the user for a prebuilt image if the current repo can be built confid
 Do not push images to any repository that is not listed by PlugLayer.
 
 ## Database rule
-- If the app is a common database and a trusted public Docker Hub image exists, prefer the public image directly.
-- Do not mirror or push those public database images unless there is a very specific reason.
+- If the app is a common database and a trusted upstream image exists, it may be used as the source.
+- Never deploy that source directly. PlugLayer must mirror every image into a verified private managed repository before deployment, with no public bypass.
 - Before deploying a database, ask whether the user wants the database deployed here or already has one elsewhere and only wants to use the connection string.
 - For user-facing database provisioning, prefer Data Layer templates and database tools first.
 - Use generic app deploy for databases only when the user explicitly wants a custom database runtime outside the standard Data Layer template path.
