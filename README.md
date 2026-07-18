@@ -114,7 +114,7 @@ This plugin is strongest for:
 
 For DNS-heavy flows, the plugin should translate PlugLayer's exact DNS names into registrar-friendly host entries when needed, such as `@` for the root domain or `_pluglayer-verify` instead of `_pluglayer-verify.example.com` in GoDaddy-style UIs.
 
-For image deploys, the plugin should prefer PlugLayer's managed mirror flow so Claude can ship public or prebuilt images through the PlugLayer Docker Hub namespace before deployment.
+For every image deploy, the plugin must use PlugLayer's managed mirror flow so Claude ships public or prebuilt source images through a verified private repository in the PlugLayer Docker Hub namespace before deployment. There is no direct/public bypass.
 
 For mirrored image deploys, the plugin relies on admin-configured registries stored in PlugLayer itself. Users do not pass registry credentials through the plugin.
 
