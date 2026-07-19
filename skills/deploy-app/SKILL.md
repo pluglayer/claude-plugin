@@ -254,6 +254,9 @@ Do not push images to any repository that is not listed by PlugLayer.
 - If some env vars may differ in the deployed version, call that out clearly and confirm with the user.
 - Remind the user that env vars can be updated later by asking to update them.
 - When only env vars change, explain that the app will restart/redeploy.
+- Use `apply_app_env_vars` for arbitrary runtime updates. It accepts a direct key/value object or dotenv/`KEY=VALUE`, JSON, or YAML content, supports merge or full replacement, and never returns values.
+- If the user selects a local `.env` or config file, read that exact file with the host's normal file tools and pass its content to MCP; never pass a filesystem path to MCP, scan for unrelated env files, interpolate `$VARS`, or echo secret values.
+- For GitHub CI, use `pluglayer/actions/github/apply-env-and-restart@main`; prefer a masked `env_json` secret, or an explicitly created runner `env_file`, and never commit a production `.env` file.
 - After a successful deploy, look at the other apps in the project and suggest concrete env updates when one app now depends on another.
 - For databases, fetch the concrete connection details after provisioning and offer to update dependent backend/frontend apps with those exact values.
 - Before assigning or changing a PlugLayer slug, check that it is available in the target project.
