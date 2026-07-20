@@ -32,13 +32,14 @@ Use this skill when the user wants GitHub Actions or CI/CD for an app that is al
    - optional:
      - `PLUGLAYER_API_URL` which defaults to `https://api.pluglayer.com`
      - `PLUGLAYER_BUILD_ENV_JSON` as a JSON object of build-time env vars/build args to inject during image build
+     - `PLUGLAYER_ENV_JSON` as a masked JSON object of runtime env vars to merge before the final restart
    - tell them the generated workflow already contains the resolved `app_id`, so they do not need a `PLUGLAYER_APP_ID` secret
 7. Explain what the pipeline does:
    - serializes deploys per app with a `concurrency` group so two pushes never run overlapping rollouts against the same app
    - builds a multi-arch OCI archive
    - uploads it to PlugLayer for the same app id through `/v1/plugin/apps/{app_id}/upload-image`
    - injects CI-provided build env vars into the image build if present
-   - redeploys the same app so it rolls out the newly uploaded image
+   - securely imports optional runtime env vars and restarts the same app so it rolls out the newly uploaded image
    - waits for the rollout task to finish and fails the job with the real rollout error if the task fails
    - keeps the existing slug unchanged
 
@@ -46,7 +47,7 @@ Use this skill when the user wants GitHub Actions or CI/CD for an app that is al
 - `github/build-oci-image`: builds a multi-arch OCI archive (`context`, `dockerfile`, `image_name`, `image_tag`, `archive_path`, `platforms`, `build_env_json`) → `archive_path`
 - `github/upload-image-to-pluglayer`: uploads the archive to the same app id with transient-failure retries (`api_token`, `app_id`, `archive_path`, `image_tag`, `registry_id`) → `mirrored_image`, `app_id`
 - `github/redeploy-pluglayer-app`: queues the redeploy and polls the rollout task until it completes or fails (`api_token`, `app_id`, `wait_for_completion` default true, `wait_timeout_seconds` default 900, `poll_interval_seconds` default 10) → `task_id`, `final_status`
-- `github/apply-env-and-restart`: merges env vars onto the app, restarts or redeploys it, and waits for the queued task the same way (`api_token`, `app_id`, `env_json`, `merge`, `restart_mode`, plus the same wait inputs) → `task_id`, `final_status`
+- `github/apply-env-and-restart`: securely imports and merges/replaces env vars, restarts or redeploys, and waits for the queued task (`api_token`, `app_id`, exactly one of `env_json`, `env_text`, or `env_file`, optional `env_format`, `merge`, `restart_mode`, `redeploy_strategy`, plus wait inputs) → `task_id`, `final_status`. Prefer masked `env_json`; `env_file` must be an explicit UTF-8 runner file and must never be a committed production secret file.
 
 ## Notes
 - Do not create a brand-new PlugLayer app for CI/CD setup.
