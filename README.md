@@ -18,6 +18,7 @@ The installer gives the user a branded PlugLayer terminal flow, stages the Claud
   - deployment to PlugLayer
   - deployment failure diagnosis
   - custom domain guidance
+  - secure runtime env import from key/value maps or dotenv/JSON/YAML content
   - safe product feedback submission and tracking
 - Focused deploy and feedback agents
 
@@ -98,6 +99,7 @@ Desktop-only users do not need this CLI command. Use the installer and restart t
 - "Inspect this repo and tell me whether I should deploy it with Dockerfile or docker-compose."
 - "Create a PlugLayer project for this repo and deploy it."
 - "Build this repo, deploy it to PlugLayer, and use the default domain for now."
+- "Merge the runtime variables from this `.env` file into my existing app and restart it without showing their values."
 - "Help me attach my custom domain and explain exactly what to put in my DNS provider."
 - "Why did this PlugLayer deploy fail? Check logs and fix it."
 - "Report this PlugLayer problem and include only safe diagnostic context."
