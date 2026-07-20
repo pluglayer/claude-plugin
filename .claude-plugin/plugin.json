@@ -1,6 +1,6 @@
 {
   "name": "pluglayer",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "description": "Deploy, operate, recover, and share product feedback on PlugLayer from Claude Code.",
   "author": {
     "name": "PlugLayer",

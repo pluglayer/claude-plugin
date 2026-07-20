@@ -81,6 +81,7 @@ Decision rules:
   - upload it to the same PlugLayer `app_id`
   - optionally merge env vars from GitHub secrets
   - restart or redeploy the same app without changing the slug
+- For arbitrary runtime env changes, use `apply_app_env_vars`. Read only the exact `.env`/JSON/YAML file selected by the user, pass content rather than a path, choose merge versus replace explicitly, and never echo values.
 - Do not push images to repositories that are not listed/allowed by PlugLayer.
 - For common databases, a trusted public image may be the upstream source, but PlugLayer must still mirror it into a verified private managed repository before deployment. Never use a direct/public bypass.
 - For standard user-facing databases, prefer provisioning through Data Layer templates first.
