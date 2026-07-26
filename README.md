@@ -114,7 +114,7 @@ This plugin is strongest for:
 - custom domain onboarding and verification help
 - authenticated feedback submission and ticket-status checks
 
-For DNS-heavy flows, the plugin should translate PlugLayer's exact DNS names using the authoritative zone. GoDaddy cannot publish a CNAME at `@`, so its supported apex path is a PlugLayer `www` custom domain plus GoDaddy HTTPS Permanent (301) Forward only from the root, without masking.
+For DNS-heavy flows, the plugin should translate PlugLayer's exact DNS names using the authoritative zone. Root and `www` are separate exact routes, so the plugin asks which must work and either attaches both or configures an HTTPS permanent redirect to the canonical hostname. It validates a nested path so the redirect does not drop the path or query. GoDaddy cannot publish a CNAME at `@`, so its supported apex path is a PlugLayer `www` custom domain plus GoDaddy HTTPS Permanent (301) Forward only from the root, without masking.
 
 For every image deploy, the plugin must use PlugLayer's managed mirror flow so Claude ships public or prebuilt source images through a verified private repository in the PlugLayer Docker Hub namespace before deployment. There is no direct/public bypass.
 
