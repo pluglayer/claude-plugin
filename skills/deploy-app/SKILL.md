@@ -56,6 +56,7 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
    - run provider detection first
    - confirm the detected provider and authoritative DNS zone with the user
    - if detection is uncertain, show several provider options plus `[you choose]` and let them type their own
+   - if the hostname is the root or `www`, ask whether the root, `www`, or both must work and identify the canonical hostname
    - if this is a single GoDaddy apex, do not add it to PlugLayer; use `www` as the PlugLayer custom domain and GoDaddy Permanent (301) Forward only from the apex to `www`
    - only then show DNS record instructions
 9. DNS instructions must always be shown in a markdown table with columns:
@@ -319,7 +320,9 @@ When explaining DNS records:
 - never instruct GoDaddy to create CNAME Name `@`; use a PlugLayer `www` CNAME plus GoDaddy HTTPS Permanent (301) Forward only from the apex, without masking
 - do not invent or copy an edge IP for a GoDaddy apex A record
 - never tell the user to paste the full domain into the provider Name / Host field when the UI expects a relative label
-- mention that root and `www` sometimes behave differently
+- treat root and `www` as separate exact hostnames; one PlugLayer route never covers the other automatically
+- when both must work, either add, verify, and attach both exact hostnames with provider-compatible DNS or configure an HTTPS permanent redirect to the chosen canonical hostname
+- test the homepage and a real nested path on both names; a root-to-`www` redirect must preserve `/page-1` and any query string
 - if the provider UI uses shorthand, include both the provider entry and the exact DNS name PlugLayer is verifying
 - tailor click-path notes to the confirmed provider when possible
 
