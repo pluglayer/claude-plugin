@@ -53,8 +53,9 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
    Make it explicit that changing the PlugLayer slug is different from adding or updating a custom domain.
 8. If they choose a custom domain:
    - run provider detection first
-   - confirm the detected provider with the user
+   - confirm the detected provider and authoritative DNS zone with the user
    - if detection is uncertain, show several provider options plus `[you choose]` and let them type their own
+   - if this is a single GoDaddy apex, do not add it to PlugLayer; use `www` as the PlugLayer custom domain and GoDaddy Permanent (301) Forward only from the apex to `www`
    - only then show DNS record instructions
 9. DNS instructions must always be shown in a markdown table with columns:
    - Type
@@ -313,7 +314,9 @@ When explaining DNS records:
 - say `Content / Value`
 - say `Target` for CNAME when needed
 - convert PlugLayer's exact DNS names into the confirmed provider's UI host format
-- for GoDaddy/Namecheap/Cloudflare/Squarespace, use `@` for the root and only the left-hand label like `www` or `_pluglayer-verify` for subdomains
+- use the authoritative zone to calculate provider-relative labels; for example, `_pluglayer-verify.www` and `www` for `www.example.com`
+- never instruct GoDaddy to create CNAME Name `@`; use a PlugLayer `www` CNAME plus GoDaddy HTTPS Permanent (301) Forward only from the apex, without masking
+- do not invent or copy an edge IP for a GoDaddy apex A record
 - never tell the user to paste the full domain into the provider Name / Host field when the UI expects a relative label
 - mention that root and `www` sometimes behave differently
 - if the provider UI uses shorthand, include both the provider entry and the exact DNS name PlugLayer is verifying
