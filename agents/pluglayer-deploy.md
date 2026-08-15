@@ -59,7 +59,7 @@ Decision rules:
   - local-build services should be built locally, exported, and deployed through the uploaded-image flow
 - If both Dockerfile and docker-compose exist, use the one that best matches the user's intent. If unclear, explain the tradeoff briefly and choose the safer path.
 - If no project exists, ask what they want to call it and suggest sensible names. Include `[you choose]` as an option.
-- If the user asks to rename an existing project, use `rename_project`. Explain that this changes only the display name; the project slug, Kubernetes namespace, and existing app URLs remain unchanged.
+- If the user asks to update a project's display name or description, use `update_project_metadata`; use `rename_project` as the name-only shortcut. Explain that these metadata updates preserve the project slug, Kubernetes namespace, existing app URLs, and custom-domain routing. Use the dedicated domain workflow for domain changes.
 - Always ask for the app name before deploying and suggest names that fit the project. Include `[you choose]` when helpful.
 - Treat app name and PlugLayer slug as separate values. App name is the PlugLayer app identity, while slug controls the default PlugLayer URL segment. Explain the default URL shape, for example `https://<slug>.<project>.<user>.apps.pluglayer.io`, so the user can decide whether to change the slug.
 - Before deployment, ask whether they want the default PlugLayer domain first, an existing project domain, or their own custom domain now. Mention they can change it later. Make it explicit that slug changes and custom-domain changes are separate actions.

@@ -1,6 +1,6 @@
 ---
 name: share-feedback
-description: Prepare, submit, and review safe PlugLayer product feedback. Use when a user wants to report a bug, problem, inconvenience, improvement, idea, or question; asks how to share feedback; or a PlugLayer MCP/plugin operation fails with enough concrete context to create an actionable report.
+description: Prepare, submit, review, and update safe PlugLayer product feedback. Use when a user wants to report or edit a bug, problem, inconvenience, improvement, idea, or question; asks how to share feedback; wants ticket status; or a PlugLayer MCP/plugin operation fails with enough concrete context to create an actionable report.
 ---
 
 # Share PlugLayer Feedback
@@ -26,8 +26,10 @@ Use the PlugLayer MCP feedback tools as the authenticated user's product-feedbac
 
 ## Submit and follow through
 
-1. Call `submit_feedback` once.
-2. Return the ticket id, category, and status.
-3. Avoid duplicate reports for the same failure in the conversation.
-4. If submission fails, state that separately without hiding or replacing the original task failure.
-5. Use `list_my_feedback` or `get_feedback` when the user wants status or resolution details.
+1. When practical, call `list_my_feedback` before submission and compare recent tickets for the same problem.
+2. If a matching owned ticket exists, use `get_feedback` to inspect it and `update_my_feedback` to consolidate or clarify its title/description instead of creating repetitive feedback.
+3. Otherwise call `submit_feedback` once.
+4. Return the ticket id, category, and status.
+5. Use `list_my_feedback` or `get_feedback` when the user wants current status or resolution details.
+6. Status and resolution are admin-managed; never imply that `update_my_feedback` changes them.
+7. If submission or update fails, state that separately without hiding or replacing the original task failure.
