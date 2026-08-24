@@ -33,7 +33,7 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
    - If they do not have one, ask what they want to call it and suggest sensible names.
    - Include `[you choose]` as an option when the user wants the agent to decide.
    - Best practice: separate distinct software systems into separate projects.
-   - If the user asks to rename an existing project, use `rename_project` and explain that only its display name changes; its slug, namespace, and existing app URLs stay unchanged.
+   - If the user asks to update a project's display name or description, use `update_project_metadata`; use `rename_project` as the name-only shortcut. Explain that project metadata updates preserve the slug, namespace, existing app URLs, and custom-domain routing. Use the dedicated domain tools for domain changes.
 6. Always ask for the app name before deployment and suggest names that fit the project, for example:
    - `mongo-db`
    - `api-backend`
