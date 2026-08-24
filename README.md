@@ -16,10 +16,11 @@ The installer gives the user a branded PlugLayer terminal flow, stages the Claud
 - Skills for:
   - repo inspection
   - deployment to PlugLayer
+  - project display-name and description updates without changing routing identity
   - deployment failure diagnosis
   - custom domain guidance
   - secure runtime env import from key/value maps or dotenv/JSON/YAML content
-  - safe product feedback submission and tracking
+  - safe product feedback submission, tracking, and owner-scoped text updates
 - Focused deploy and feedback agents
 
 ## Requirements
@@ -112,7 +113,7 @@ This plugin is strongest for:
 - docker-compose deployments
 - failure diagnosis using PlugLayer logs plus local repo inspection
 - custom domain onboarding and verification help
-- authenticated feedback submission and ticket-status checks
+- authenticated feedback submission, ticket-status checks, and owner-scoped title/description updates
 
 For DNS-heavy flows, the plugin should translate PlugLayer's exact DNS names using the authoritative zone. Root and `www` are separate exact routes, so the plugin asks which must work and either attaches both or configures an HTTPS permanent redirect to the canonical hostname. It validates a nested path so the redirect does not drop the path or query. GoDaddy cannot publish a CNAME at `@`, so its supported apex path is a PlugLayer `www` custom domain plus GoDaddy HTTPS Permanent (301) Forward only from the root, without masking.
 
