@@ -122,3 +122,11 @@ For every image deploy, the plugin must use PlugLayer's managed mirror flow so C
 For mirrored image deploys, the plugin relies on admin-configured registries stored in PlugLayer itself. Users do not pass registry credentials through the plugin.
 
 This plugin does not expose PlugLayer admin-only tools. It is scoped to end-user app/project/domain/task flows. Compute inventory and purchasing are read-only, while project owners may attach/detach existing dedicated nodes through backend-guarded tools; users can remove their own apps through MCP, and project removal stays within end-user project flows rather than admin actions.
+
+## Marketplace templates
+
+Use `manage-templates` to author or clone private Compose templates, preview and test them,
+submit for admin review, track reviewer notes, and maintain template-backed apps.
+Start with: “Turn this Compose file into a private PlugLayer template and submit it
+after testing.” Public tools cannot approve or publish submissions. The matching
+backend and `pluglayer-mcp` release must be deployed before these tools are usable.
