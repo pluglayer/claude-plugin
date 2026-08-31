@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage app access"
+  short_description: "Configure app IP allowlists and traffic limits"
+  default_prompt: "Use $manage-app-access to review my PlugLayer apps and carry out suitable authorized traffic-protection changes."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Check app security"
+  short_description: "Review app logs, exposure, and traffic protection"
+  default_prompt: "Use $check-app-security to review my PlugLayer apps and carry out suitable authorized traffic-protection changes."
