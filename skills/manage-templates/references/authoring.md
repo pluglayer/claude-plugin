@@ -16,8 +16,10 @@ this guide covers decisions that JSON schemas cannot express.
   starting point, not observed production capacity.
 - Describe env inputs using `template_env_vars` (`key`, `value`, `required`,
   `sensitive`, `randomizable`, `value_type`, `description`). Use supported placeholders
-  such as `{{RANDOM_PASSWORD}}` and `{{RANDOM_TOKEN}}` for generated secrets. Runtime
-  credentials belong in deployment inputs, never Compose, instructions, or reports.
+  such as `{{RANDOM_PASSWORD}}` and `{{RANDOM_TOKEN}}` for generated secrets. Treat
+  upstream Compose defaults like `${APP_SECRET:-}` or `${PASSWORD:-change_me}` as
+  generate-me secrets, not values to persist. Runtime credentials belong in
+  deployment inputs, never Compose, instructions, or reports.
 - For a reused Data Layer database, use `database_binding` with `engine` or
   `template_slug`, `value_from` (`connection_field` or `env_var`), and `key`.
   Resolve the exact owned database ID at deployment using `database_bindings`.

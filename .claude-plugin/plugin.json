@@ -1,7 +1,7 @@
 {
   "name": "pluglayer",
-  "version": "1.1.19",
-  "description": "Deploy, operate, recover, and share product feedback on PlugLayer from Claude Code Create, test, and submit marketplace templates.",
+  "version": "1.1.20",
+  "description": "Deploy and operate PlugLayer apps from Claude; check app security, manage IP allowlists and rate limits, create templates, and share feedback.",
   "author": {
     "name": "PlugLayer",
     "url": "https://pluglayer.com"
