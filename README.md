@@ -130,3 +130,20 @@ submit for admin review, track reviewer notes, and maintain template-backed apps
 Start with: “Turn this Compose file into a private PlugLayer template and submit it
 after testing.” Public tools cannot approve or publish submissions. The matching
 backend and `pluglayer-mcp` release must be deployed before these tools are usable.
+
+## App checks and traffic protection
+
+Ask “Check my apps” or “Check my app security” to review app status, recent logs,
+exposure, and existing protections. `check-app-security` separates traffic abuse
+from app faults and explains any missing telemetry. Ask “Check my apps and fix
+suitable traffic-protection issues” to authorize appropriate mitigation.
+
+Use `manage-app-access` to configure IP allowlists, HTTP rate limits, and TCP
+connection caps. Existing values are preserved, changes are verified, and ingress
+updates need no restart. Trusted CIDRs and public/private audience changes must
+come from you; a check-only request produces findings and concrete proposals.
+
+Examples: “Set this app's HTTP rate limit and preserve its allowlist”; “Restrict
+this private app to my approved VPN CIDRs”; “Investigate these 429 errors”.
+This review is not a penetration test. The matching backend and MCP release must
+be available for policy updates; missing tools/routes are reported explicitly.
