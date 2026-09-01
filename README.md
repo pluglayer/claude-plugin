@@ -37,6 +37,10 @@ The installer gives the user a branded PlugLayer terminal flow, stages the Claud
 - Detects the installed plugin version and offers:
   - update/reinstall PlugLayer for Claude Code
   - update the saved token only
+- During normal PlugLayer work, MCP checks installer-managed plugin versions at
+  most once per 24 hours. It stays quiet when current, asks before an available
+  update, and installs only the exact approved version from a pinned public
+  repository commit.
 
 ## Local install from this repo
 
@@ -83,15 +87,13 @@ Desktop-only users do not need this CLI command. Use the installer and restart t
 
 ```json
 {
-  "mcpServers": {
-    "pluglayer": {
-      "command": "uvx",
-      "type": "stdio",
-      "args": ["pluglayer-mcp"],
-      "env": {
-        "PLUGLAYER_API_KEY": "${PLUGLAYER_API_KEY}"
-      }
-    }
+  "pluglayer": {
+    "command": "/bin/bash",
+    "type": "stdio",
+    "args": [
+      "-lc",
+      "if [ -f \"$HOME/.pluglayer/credentials.env\" ]; then . \"$HOME/.pluglayer/credentials.env\"; fi; exec uvx pluglayer-mcp@latest"
+    ]
   }
 }
 ```

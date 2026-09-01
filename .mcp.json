@@ -4,7 +4,7 @@
     "type": "stdio",
     "args": [
       "-lc",
-      "if [ -f \"$HOME/.pluglayer/credentials.env\" ]; then . \"$HOME/.pluglayer/credentials.env\"; fi; exec uvx pluglayer-mcp"
+      "if [ -f \"$HOME/.pluglayer/credentials.env\" ]; then . \"$HOME/.pluglayer/credentials.env\"; fi; exec uvx pluglayer-mcp@latest"
     ]
   }
 }
