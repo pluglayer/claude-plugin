@@ -65,22 +65,21 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
    - Content / Value / Target
    - Description
 10. Check compute availability.
-   - If sizing is unclear, call `estimate_compute`.
-   - Prefer `get_compute_summary(project_id=...)` for deploys into an existing project: it shows the nodes attached to that project and per-node usage. A dedicated node serves exactly one project; shared PlugLayer nodes serve many projects from the user's shared reservation.
-   - If no attached node can fit the app, call `list_attachable_project_nodes(project_id)`. If a Ready unassigned node fits, explain the choice and offer `attach_node_to_project`; only the project owner may attach it.
-   - If no existing node fits, call `estimate_compute`, explain that this project needs another node, offer PlugLayer compute, share the compute link, and stop deployment until capacity is attached.
-   - If the user needs a custom slice of shared capacity instead of a whole node, call `get_shared_compute_pricing` and direct them to the web app: Compute -> Add Compute -> Buy shared compute (purchasing stays in the web app).
-   - After the user attaches or purchases compute, always call `get_compute_summary(project_id=...)` again. Deploy only when an attached Ready node has enough free CPU, RAM, storage, and GPU for the app.
+   - If sizing is unclear, call `estimate_compute(project_id=...)`, then call `plan_dedicated_compute` with the resolved minimum.
+   - Treat every app as indivisible: one node must satisfy all of its CPU, RAM, storage, and GPU requirements. Never add undersized machines together to claim one app fits.
+   - The planner reuses attached capacity first, then a fitting owned unassigned node, then active ready-to-buy marketplace inventory. Follow its deploy, attach, or purchase action.
+   - Different apps or Smart Compose services may use different nodes in the same project.
+   - Shared/flexible compute is excluded from new selection for now. Use `personal` placement.
+   - If the planner reports unavailable inventory, show the exact unmet shape and ask before calling `request_extra_compute(..., confirm=true)`. This creates an Extra Compute Request in the user's feedback history.
+   - For an existing app resize, pass both `project_id` and `exclude_app_id` so the planner replaces that app's current reservation instead of counting it twice.
+   - After the user attaches or purchases compute, call `plan_dedicated_compute` again. Deploy only when it reports `can_deploy_now: yes`.
 11. Check whether this project already has apps.
    - List the available apps for the user.
    - If one likely matches the intended deploy target, ask whether they want to update it, replace it, or add a separate new app.
    - Include a recommended option and `[you choose]` for complex operations.
    - If the namespace already looks full, quota-limited, or occupied by a failed/crash-looping older workload, refuse the separate new-app path by default and steer the user into update or replace flow instead.
 12. Choose placement:
-   - `personal` when the user explicitly wants dedicated personal compute
-   - `shared` when the user explicitly wants shared PlugLayer compute
-   - `auto` otherwise
-   - Include `[you choose]` when the user delegates the decision.
+   - use `personal`; shared/flexible capacity is not part of new compute selection yet
 13. Decide deploy type:
    - local build + image deploy when the current repo should be shipped now
    - Docker image when an image already exists in an allowed listed repository
@@ -198,7 +197,7 @@ When the user provides a docker-compose stack:
 - app terminal when troubleshooting a live app, but keep terminal input at or below 10,000 characters and about 350 lines
 - remove app when the user explicitly wants to remove it
 
-Compute inventory, purchasing, archival, and removal remain read-only through MCP. The deliberate exception is owner-only project attachment: use the attach/detach tools to associate an existing dedicated node with one project. Never detach without explicit confirmation, and never bypass the backend's active-app safety check. If the project still needs capacity, use estimate + marketplace/shared-compute guidance or the platform UI.
+Compute inventory, purchasing, archival, and removal remain read-only through MCP. The deliberate exceptions are owner-only project attachment and confirmation-gated Extra Compute Requests through the shared feedback workflow. Never detach or submit a request without explicit confirmation, and never bypass backend admission. If the project still needs capacity, use the dedicated planner and marketplace guidance or request the missing machine shape.
 MCP exposes no admin-only functions. Stay within end-user actions only.
 
 ## Local repo deploy default
