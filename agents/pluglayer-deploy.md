@@ -64,9 +64,8 @@ Decision rules:
 - Treat app name and PlugLayer slug as separate values. App name is the PlugLayer app identity, while slug controls the default PlugLayer URL segment. Explain the default URL shape, for example `https://<slug>.<project>.<user>.apps.pluglayer.io`, so the user can decide whether to change the slug.
 - Before deployment, ask whether they want the default PlugLayer domain first, an existing project domain, or their own custom domain now. Mention they can change it later. Make it explicit that slug changes and custom-domain changes are separate actions.
 - If they want a root or `www` custom domain, ask whether the root, `www`, or both must work and identify the canonical hostname. Treat them as separate exact routes; either attach both or configure an HTTPS permanent redirect, and test that a nested path plus query survives. Detect the provider and authoritative DNS zone first, confirm both, and then show DNS records in a markdown table with Type, Name / Host, Content / Value / Target, Description. Never add or instruct a GoDaddy apex CNAME at `@`; use a PlugLayer `www` domain plus GoDaddy HTTPS Permanent (301) Forward only from the apex.
-- If no ready compute exists or available compute is zero, surface that early, run `estimate_compute()`, share the get/purchase-compute link, and re-check available compute before deployment.
-- Compute attachment model: a dedicated (personal/marketplace) node serves exactly one project, a project can combine multiple nodes, and shared PlugLayer nodes serve many projects from each user's shared reservation. Use `get_compute_summary(project_id=...)` to see the nodes backing a specific project and per-node usage.
-- Users can also buy a custom shared-compute reservation (CPU/RAM/storage/GPU slice priced by admin unit rates). Use `get_shared_compute_pricing` for read-only pricing/pool visibility and direct them to Compute -> Add Compute -> Buy shared compute in the web app to purchase; MCP never mutates compute.
+- Before deployment, call `plan_dedicated_compute` with one workload per app and the minimum CPU, RAM, storage, and GPU. Each app must fit wholly on one machine; separate apps may use different project machines. Follow the planner's attached capacity, owner-unassigned machine, then active marketplace recommendation order, and use `personal` placement.
+- If no active marketplace machine fits, offer the confirmation-gated `request_extra_compute` tool. Shared/flexible compute is excluded from new selection for now, and undersized machine capacities must never be added together to claim one app fits.
 - For deploys and redeploys, default to at least 5 GB storage unless the user explicitly asks for less.
 - For deploys and redeploys, default to at least 1 CPU core and 1 GB RAM unless the user explicitly asks for less.
 - If compute seems to have disappeared from a user's inventory unexpectedly, do not suggest recreating the record or deleting more state. Treat it as a possible archived-compute recovery case and direct admins to Admin -> DR to restore/adopt archived compute first.
@@ -86,7 +85,7 @@ Decision rules:
 - Do not push images to repositories that are not listed/allowed by PlugLayer.
 - For common databases, a trusted public image may be the upstream source, but PlugLayer must still mirror it into a verified private managed repository before deployment. Never use a direct/public bypass.
 - For standard user-facing databases, prefer provisioning through Data Layer templates first.
-- MCP exposes no admin-only functions. Do not suggest plugin/admin routes or compute mutation through the MCP surface.
+- MCP exposes no admin-only functions. The only compute-related mutations are backend-owned project attachment/detachment and a confirmation-gated Extra Compute Request feedback ticket; do not invent other compute mutations.
 - For apps, use remove semantics when the user explicitly wants removal. Do not describe end-user app deletion as archival.
 - Projects can be removed from active use through end-user MCP flows, but do not present those actions as admin workflows.
 - When helping with DNS, speak in registrar terms: Name/Host, Content/Value, and Target. If the registrar uses shorthand host labels, include both the value to enter there and the exact DNS name PlugLayer is checking. Tell the user to reply after they add the records so verification can continue.
@@ -108,7 +107,7 @@ Always return after a deploy attempt:
 - what was deployed
 - which project was used
 - app name
-- whether deployment used shared or personal compute
+- which dedicated machine placement was used
 - current status
 - URL if available
 - database engine/template and connection details if the task involved Data Layer
