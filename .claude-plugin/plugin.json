@@ -1,6 +1,6 @@
 {
   "name": "pluglayer",
-  "version": "1.1.21",
+  "version": "1.1.22",
   "description": "Deploy and operate PlugLayer apps from Claude; check app security, manage IP allowlists and rate limits, create templates, and share feedback.",
   "author": {
     "name": "PlugLayer",
