@@ -1,6 +1,6 @@
 ---
 name: share-feedback
-description: Prepare, submit, review, and update safe PlugLayer product feedback. Use when a user wants to report or edit a bug, problem, inconvenience, improvement, idea, or question; asks how to share feedback; wants ticket status; or a PlugLayer MCP/plugin operation fails with enough concrete context to create an actionable report.
+description: Prepare, submit, review, and reference safe PlugLayer product feedback. Use when a user wants to report or follow up on a bug, problem, inconvenience, improvement, idea, or question; asks how to share feedback; wants ticket status; or a PlugLayer MCP/plugin operation fails with enough concrete context to create an actionable report.
 ---
 
 # Share PlugLayer Feedback
@@ -26,10 +26,10 @@ Use the PlugLayer MCP feedback tools as the authenticated user's product-feedbac
 
 ## Submit and follow through
 
-1. When practical, call `list_my_feedback` before submission and compare recent tickets for the same problem.
-2. If a matching owned ticket exists, use `get_feedback` to inspect it and `update_my_feedback` to consolidate or clarify its title/description instead of creating repetitive feedback.
-3. Otherwise call `submit_feedback` once.
-4. Return the ticket id, category, and status.
-5. Use `list_my_feedback` or `get_feedback` when the user wants current status or resolution details.
-6. Status and resolution are admin-managed; never imply that `update_my_feedback` changes them.
-7. If submission or update fails, state that separately without hiding or replacing the original task failure.
+1. When practical, call `list_my_feedback` before submission and compare recent tickets for the same problem. Use `get_feedback` to inspect a matching owned ticket or a reference supplied by the user.
+2. Submitted feedback must not be edited: never call `update_my_feedback`. For corrections, additional evidence, or a recurrence, call `submit_feedback` to create a new ticket and include `Reference feedback: <previous ticket ID>` in its description. If the previous ticket is `resolved`, explicitly say the same issue happened again and describe the new occurrence; leave the old ticket and its resolution unchanged.
+3. Put the reference near the start of the description so it is preserved within tool length limits. Use an actual ticket ID from the user or tool results; never invent one. If lookup fails and no ID is known, state that the reference could not be verified and report the actionable issue without fabricating a reference.
+4. Submit explicit feedback immediately. A matching ticket does not block new follow-up feedback. Avoid submitting the same occurrence repeatedly in one conversation; new evidence or a recurrence warrants a new referenced ticket.
+5. Return the new ticket id, category, status, and previous ticket reference when present.
+6. Use `list_my_feedback` or `get_feedback` when the user wants current status or resolution details. Status and resolution are admin-managed.
+7. If submission fails, state that separately without hiding or replacing the original task failure.
