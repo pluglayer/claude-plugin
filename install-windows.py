@@ -1,4 +1,4 @@
-"""Native Windows plugin installation shared by public and private entry points."""
+"""Template for product-specific native Windows plugin installers."""
 
 from __future__ import annotations
 
@@ -15,11 +15,12 @@ from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 
-PRODUCTS = {
-    "public": ("PLUGLAYER", ".pluglayer", "pluglayer-mcp", "plk_"),
-    "admin": ("PLUGLAYER_ADMIN", ".pluglayer-admin", "pluglayer-admin-mcp", "plka_"),
-    "security": ("PLUGLAYER_SECURITY", ".pluglayer-security-ops", "pluglayer-security-ops-mcp", "plks_"),
-}
+PREFIX = "PLUGLAYER"
+FOLDER = ".pluglayer"
+PACKAGE = "pluglayer-mcp"
+TOKEN_PREFIX = "plk_"
+SERVER_NAME = "pluglayer"
+CLAUDE_MARKETPLACE = "pluglayer"
 MANIFESTS = {"codex": ".codex-plugin/plugin.json", "claude-code": ".claude-plugin/plugin.json",
              "cursor": ".cursor-plugin/plugin.json", "antigravity": "plugin.json"}
 
@@ -138,56 +139,41 @@ def register_claude(home: Path, source: Path, plugin: str, market: str, version:
     write_json(settings_path, settings)
 
 
-def install(*, target: str, product: str, source: Path, uv: str, home: Path | None = None) -> None:
+def install(*, target: str, source: Path, uv: str, home: Path | None = None) -> None:
     home = home or Path.home()
-    prefix, folder, package, token_prefix = PRODUCTS[product]
-    root = home / folder
+    root = home / FOLDER
     credentials = root / "credentials.env"
     # Remove bootstrap secrets before any dependency/tool subprocess.
-    key = os.environ.pop(prefix + "_API_KEY", "")
-    url = os.environ.pop(prefix + "_API_URL", "")
+    key = os.environ.pop(PREFIX + "_API_KEY", "")
+    url = os.environ.pop(PREFIX + "_API_URL", "")
     saved = read_credentials(credentials)
-    if product == "public":
-        key = key or saved.get(prefix + "_API_KEY", "") or getpass.getpass("PlugLayer API token (portal > Setup > API access): ")
-        url = url or saved.get(prefix + "_API_URL", "") or "https://api.pluglayer.com"
-    if not key.startswith(token_prefix) or any(ord(c) < 32 or ord(c) == 127 for c in key):
+    key = key or saved.get(PREFIX + "_API_KEY", "") or getpass.getpass("PlugLayer API token (portal > Setup > API access): ")
+    url = url or saved.get(PREFIX + "_API_URL", "") or "https://api.pluglayer.com"
+    if not key.startswith(TOKEN_PREFIX) or any(ord(c) < 32 or ord(c) == 127 for c in key):
         raise ValueError("Missing or invalid PlugLayer credential. Generate a new installer command in the portal.")
     parsed = urlsplit(url)
     if not parsed.hostname or parsed.username or parsed.password or parsed.path not in ("", "/") or parsed.query or parsed.fragment:
         raise ValueError("PlugLayer API URL must be an origin")
     if parsed.scheme != "https" and not (parsed.scheme == "http" and parsed.hostname in {"localhost", "127.0.0.1", "::1"}):
         raise ValueError("PlugLayer requires HTTPS outside local development")
-    plugin_source = source if product == "public" else source / "plugins" / target
+    plugin_source = source
     manifest = read_json(plugin_source / MANIFESTS[target], {})
     plugin = manifest["name"]
     if not plugin or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789-_" for c in plugin):
         raise ValueError("Invalid plugin name")
-    version = manifest.get("version") or (read_json(source / "plugins/codex/.codex-plugin/plugin.json", {}).get("version") if product != "public" else (source / "VERSION").read_text().strip())
+    version = manifest.get("version") or (source / "VERSION").read_text().strip()
     if any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_" for c in version):
         raise ValueError("Invalid plugin version")
     lock_directory(root)
-    if product == "public":
-        subprocess.run([uv, "tool", "install", "--force", "--python", "3.12", package + "@latest"], check=True)
-        command = str(Path(uv).with_name("uvx.exe" if os.name == "nt" else "uvx"))
-        args = ["--python", "3.12", package + "@latest"]
-    else:
-        # Keep installed sources at a stable path after the downloaded archive is cleaned up.
-        bundle = Path(tempfile.mkdtemp(prefix=version + "-", dir=root))
-        shutil.copytree(source, bundle, dirs_exist_ok=True,
-                        ignore=shutil.ignore_patterns(".venv", "__pycache__", ".pytest_cache", ".git"))
-        subprocess.run([uv, "tool", "install", "--force", "--python", "3.12", str(bundle / "mcp")], check=True)
-        bin_dir = subprocess.check_output([uv, "tool", "dir", "--bin"], text=True).strip()
-        command = str(Path(bin_dir) / (package + (".exe" if os.name == "nt" else "")))
-        if not Path(command).is_file():
-            raise RuntimeError("The private MCP executable was not installed")
-        args = []
+    subprocess.run([uv, "tool", "install", "--force", "--python", "3.12", PACKAGE + "@latest"], check=True)
+    command = str(Path(uv).with_name("uvx.exe" if os.name == "nt" else "uvx"))
+    args = ["--python", "3.12", PACKAGE + "@latest"]
     temporary = credentials.with_suffix(".tmp")
-    temporary.write_text(f"{prefix}_API_KEY={shlex.quote(key)}\n{prefix}_API_URL={shlex.quote(url.rstrip('/'))}\n", encoding="utf-8")
+    temporary.write_text(f"{PREFIX}_API_KEY={shlex.quote(key)}\n{PREFIX}_API_URL={shlex.quote(url.rstrip('/'))}\n", encoding="utf-8")
     temporary.chmod(0o600)
     temporary.replace(credentials)
-    server = {"public": "pluglayer", "admin": "pluglayer-admin", "security": "pluglayer-security-ops"}[product]
     def copy(src, dst):
-        copy_plugin(src, dst, command, args, server, credentials, prefix)
+        copy_plugin(src, dst, command, args, SERVER_NAME, credentials, PREFIX)
     if target == "codex":
         destination = home / "plugins" / plugin
     elif target == "cursor":
@@ -200,24 +186,21 @@ def install(*, target: str, product: str, source: Path, uv: str, home: Path | No
     if target == "codex":
         register_codex(home, plugin)
     elif target == "claude-code":
-        market = {"public": "pluglayer", "admin": "pluglayer-admin", "security": "pluglayer-security-ops"}[product]
-        register_claude(home, destination, plugin, market, version, copy)
+        register_claude(home, destination, plugin, CLAUDE_MARKETPLACE, version, copy)
     elif target == "antigravity":
         copy(destination, home / ".gemini/antigravity-cli/plugins" / plugin)
-    if product == "public":
-        state = root / "state" / (("claude" if target == "claude-code" else target) + ".env")
-        state.parent.mkdir(parents=True, exist_ok=True)
-        values = {"PLUGLAYER_TARGET": "claude" if target == "claude-code" else target,
-                  "PLUGLAYER_PLUGIN_VERSION": version, "PLUGLAYER_PLUGIN_DIR": str(destination),
-                  "PLUGLAYER_INSTALLED_AT": datetime.now(timezone.utc).isoformat()}
-        state.write_text("".join(f"export {name}={shlex.quote(value)}\n" for name, value in values.items()), encoding="utf-8")
+    state = root / "state" / (("claude" if target == "claude-code" else target) + ".env")
+    state.parent.mkdir(parents=True, exist_ok=True)
+    values = {"PLUGLAYER_TARGET": "claude" if target == "claude-code" else target,
+              "PLUGLAYER_PLUGIN_VERSION": version, "PLUGLAYER_PLUGIN_DIR": str(destination),
+              "PLUGLAYER_INSTALLED_AT": datetime.now(timezone.utc).isoformat()}
+    state.write_text("".join(f"export {name}={shlex.quote(value)}\n" for name, value in values.items()), encoding="utf-8")
     print(f"Installed {plugin} for {target}. Restart your coding agent.")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--target", choices=MANIFESTS, required=True)
-    parser.add_argument("--product", choices=PRODUCTS, required=True)
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--uv", required=True)
     install(**vars(parser.parse_args()))
