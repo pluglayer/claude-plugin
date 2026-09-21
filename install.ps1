@@ -29,12 +29,17 @@ try {
     }
     if (!(Test-Path -LiteralPath (Join-Path $source 'install-windows.py'))) { throw 'Incomplete Windows installer bundle.' }
     $uv = Get-Command uv -ErrorAction SilentlyContinue
-    if (!$uv) {
+    $uvx = Get-Command uvx -ErrorAction SilentlyContinue
+    if (!$uv -or !$uvx) {
         Write-Host 'Installing the Python runtime manager...'
         Invoke-RestMethod 'https://astral.sh/uv/install.ps1' | Invoke-Expression
-        $env:PATH = (Join-Path $installUser '.local\bin') + ';' + (Join-Path $installUser '.cargo\bin') + ';' + $env:PATH
+        $localBin = Join-Path $installUser '.local\bin'
+        $cargoBin = Join-Path $installUser '.cargo\bin'
+        $env:PATH = $localBin + ';' + $cargoBin + ';' + $env:PATH
         $uv = Get-Command uv -ErrorAction Stop
+        $uvx = Get-Command uvx -ErrorAction SilentlyContinue
     }
+    if (!$uvx) { throw 'uvx is unavailable after installing uv. Restart PowerShell and run the installer again.' }
     & $uv.Source python install 3.12
     if ($LASTEXITCODE -ne 0) { throw 'Could not install Python 3.12.' }
     $python = & $uv.Source python find 3.12
