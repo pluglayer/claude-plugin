@@ -2,6 +2,26 @@
 
 This plugin connects Claude Code to PlugLayer using the published `pluglayer-mcp` package.
 
+## Windows installation
+
+PowerShell (native 64-bit Windows; Bash and preinstalled Python are not required):
+
+```powershell
+irm https://raw.githubusercontent.com/pluglayer/claude-plugin/main/install.ps1 | iex
+```
+
+Command Prompt (CMD):
+
+```bat
+curl -fsSL https://raw.githubusercontent.com/pluglayer/claude-plugin/main/install.cmd -o "%TEMP%\\pluglayer-install.cmd" && "%TEMP%\\pluglayer-install.cmd" && del "%TEMP%\\pluglayer-install.cmd"
+```
+
+The Windows installer sets up uv-managed Python and native MCP configuration,
+merges existing client settings, and stores credentials under your Windows user
+profile. Restart the coding agent after installation. For automatic token setup,
+use the portal's Setup flow and select Windows. The Bash instructions below apply
+to macOS/Linux or a coding agent running inside WSL.
+
 ## One-line install
 
 ```bash
