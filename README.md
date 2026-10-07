@@ -1,5 +1,17 @@
 # PlugLayer Claude Code Plugin
 
+## Guided agent setup (recommended)
+
+Open Setup in the PlugLayer portal, choose your coding agent, copy the setup
+prompt, and paste it into that agent. Once the signed connector release is
+available, the agent installs the complete plugin and bundled local MCP runtime
+without a separate Python, uv, pip, or Node installation. Credentials are fetched
+inside the installer and saved privately; they never need to be pasted into chat.
+The agent prepares Git/Docker/Buildx for local deployment and explains any OS
+approval or restart still required. Existing local builds, uploads, tools, skills,
+and consent-gated updates remain available. The terminal instructions below are
+the advanced legacy installation path.
+
 This plugin connects Claude Code to PlugLayer using the published `pluglayer-mcp` package.
 
 ## Windows installation
