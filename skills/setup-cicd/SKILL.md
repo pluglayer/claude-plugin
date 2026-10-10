@@ -17,8 +17,8 @@ Use this skill when the user wants GitHub Actions or CI/CD for an app that is al
    - if the app id is not obvious, list project apps first
    - confirm the exact existing app to wire into CI/CD
 2. Check local repo readiness with:
-   - `python3 skills/setup-cicd/scripts/detect_github_repo.py`
-3. If the script reports a valid GitHub repo/origin:
+   - `inspect_local_github_repo(repo_path=...)` through PlugLayer MCP (uses the bundled connector; no separate Python installation)
+3. If the tool reports a valid GitHub repo/origin:
    - use that `repo_slug`
    - otherwise ask for `owner/repo`
 4. Call the PlugLayer MCP CI/CD tool:

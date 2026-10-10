@@ -1,10 +1,3 @@
 {
-  "pluglayer": {
-    "command": "/bin/bash",
-    "type": "stdio",
-    "args": [
-      "-lc",
-      "if [ -f \"$HOME/.pluglayer/credentials.env\" ]; then . \"$HOME/.pluglayer/credentials.env\"; fi; exec uvx pluglayer-mcp@latest"
-    ]
-  }
+  "pluglayer": {"type": "http", "url": "https://mcp.pluglayer.com/mcp"}
 }
