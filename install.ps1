@@ -7,7 +7,6 @@ $environmentId = $env:PLUGLAYER_INSTALL_ENVIRONMENT
 $source = $env:PLUGLAYER_PLUGIN_SOURCE_DIR
 $cliGuide = $env:PLUGLAYER_CLI_GUIDE
 $cliInstaller = $env:PLUGLAYER_CLI_INSTALLER
-$oauthUrl = $env:PLUGLAYER_OAUTH_URL
 $setupPrompt = $env:PLUGLAYER_SETUP_PROMPT
 $installedUrl = $env:PLUGLAYER_INSTALLED_URL
 $failureUrl = $env:PLUGLAYER_INSTALL_FAILURE_URL
@@ -60,6 +59,6 @@ try {
         New-Item -ItemType Directory -Force -Path (Split-Path $dest),(Split-Path $managed) | Out-Null; if (!(Test-Path $dest)) { Copy-Item $package $dest -Recurse }; if (Test-Path $managed) { Remove-Item $managed -Recurse -Force }; Copy-Item $package $managed -Recurse; Say 'Cursor loads the complete local plugin. Reload any open Cursor window.'
     } else { Run $cli @('plugin','install',$package); Run $cli @('plugin','list') }
     try { Invoke-RestMethod -Method Post -Uri $installedUrl | Out-Null } catch { Write-Warning 'Package installed; portal status could not refresh.' }
-    Say "4/4 · Opening $label to connect PlugLayer with browser OAuth"; if ($oauthUrl) { Start-Process $oauthUrl }; Say 'Approve access in the browser when your agent asks. No API token is used.'
+    Say "4/4 · Opening $label to connect PlugLayer with browser OAuth"; Say 'Answer your agent directory-trust prompt first. Keep it running while its native OAuth browser callback connects PlugLayer.'
     if ($target -eq 'antigravity') { Run $cli @('--prompt-interactive',$setupPrompt) } else { Run $cli @($setupPrompt) }
 } catch { try { Invoke-RestMethod -Method Post -Uri $failureUrl | Out-Null } catch {}; throw } finally { if (Test-Path $work) { Remove-Item $work -Recurse -Force } }

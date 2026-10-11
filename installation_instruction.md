@@ -4,7 +4,7 @@ You are installing the official PlugLayer Claude Code plugin. Follow this
 document completely and do not substitute an MCP-only connection for the
 plugin.
 
-**Current public release: `1.1.36`**
+**Current public release: `1.1.37`**
 
 When checking an existing installation, fetch this file from the official
 repository and compare the installed package with this release marker. Verify
