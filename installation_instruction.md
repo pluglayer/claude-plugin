@@ -27,7 +27,7 @@ installation, update, and connection steps yourself using available host tools
 or the host's existing native CLI. Do not ask the user to type terminal commands.
 Respect host permissions and request only the specific approval or UI action that
 you cannot perform. A browser loopback callback is created by the host: keep its
-login process running, do not invent authorization URLs or reopen expired callbacks.
+login process running, do not invent authorization URLs or reopen expired callbacks. Never copy the localhost callback URL or authorization code into chat; the native agent must receive it automatically.
 If the portal prompt specifies an MCP URL, use that environment for this setup;
 otherwise use the production URL above. Do not edit a shared plugin cache to
 change its environment. Report any native configuration limitation.
