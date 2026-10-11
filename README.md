@@ -12,3 +12,5 @@ This plugin connects Claude Code to PlugLayer through the hosted MCP service. No
 Claude stores and refreshes the OAuth connection securely. Never copy an API token into chat. The hosted MCP URL is `https://mcp.pluglayer.com/mcp`.
 
 The plugin includes PlugLayer MCP plus skills for repo inspection, deployment, domains, CI/CD, project metadata, environment updates, feedback, security checks, and deployment repair.
+
+Detailed agent setup: [installation instructions](installation_instruction.md).
