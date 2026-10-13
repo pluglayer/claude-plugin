@@ -67,3 +67,7 @@ Provide a compact structured summary:
 - If a Dockerfile is needed, make it low-size, secure, and architecture-agnostic.
 - Call out env vars that may differ between local and deployed environments.
 - If the repo actually contains two separate full software systems, recommend splitting them into separate projects.
+
+## Runtime compatibility
+
+Check Dockerfile USER and writable application paths before building. Prefer an explicit non-zero UID:GID for custom images; named non-root accounts are resolved from the built image by the backend. Dockerfile inspection is advisory, and the backend image preflight is authoritative. Image-layer chown does not set permissions on a mounted PVC. Declare durable data paths and use existing deployment storage fields; never weaken the workload security baseline to make an image launch.

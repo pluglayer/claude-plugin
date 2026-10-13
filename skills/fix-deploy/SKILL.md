@@ -63,3 +63,7 @@ Be concrete and calm:
 - why it likely failed
 - what changed
 - whether redeploy succeeded
+
+## Runtime identity and volume failures
+
+Read the backend preflight or failed task before retrying. A root USER, unresolved account, or ambiguous multi-platform identity requires an image/configuration fix, not repeated deploys. EACCES on a PVC requires the app-owned volume group and ownership checks; do not recommend root execution, chmod 777, arbitrary chown, or another app's PVC. Preserve data and use the backend deployment workflow. Existing database ownership migration needs a reviewed plan and backup; fsGroup alone does not prove database compatibility.
