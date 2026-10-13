@@ -4,8 +4,16 @@ You are installing the official PlugLayer Claude Code plugin. Follow this
 document completely and do not substitute an MCP-only connection for the
 plugin.
 
-1. Read the available package version from `.claude-plugin/plugin.json` in the official
-   repository. Inspect the installed PlugLayer plugin and its version.
+**Current public release: `1.1.37`**
+
+When checking an existing installation, fetch this file from the official
+repository and compare the installed package with this release marker. Verify
+the same value in `.claude-plugin/plugin.json` before deciding whether an update
+is needed.
+
+1. Read the current release marker above and the package version from
+   `.claude-plugin/plugin.json` in the official repository. Inspect the installed
+   PlugLayer plugin and its version.
 2. Use Claude Code's native plugin/marketplace flow to add
    `https://github.com/pluglayer/claude-plugin` and install `pluglayer`, or
    update it when the installed version is older than the available version.
@@ -31,3 +39,7 @@ login process running, do not invent authorization URLs or reopen expired callba
 If the portal prompt specifies an MCP URL, use that environment for this setup;
 otherwise use the production URL above. Do not edit a shared plugin cache to
 change its environment. Report any native configuration limitation.
+
+## Portal Direct install
+
+From PlugLayer Portal → Agent setup, choose **Direct install**, select your operating system and Windows terminal when applicable, then run the generated command. The URL is reusable for 10 minutes, checks the native agent CLI, installs missing CLI prerequisites through the official installer, and opens browser OAuth. It does not install Python or require a PlugLayer API token.
