@@ -5,7 +5,6 @@ target="${PLUGLAYER_INSTALL_TARGET:-${1:-}}"
 label="${PLUGLAYER_INSTALL_LABEL:-PlugLayer plugin}"
 version="${PLUGLAYER_PLUGIN_VERSION:-unknown}"
 environment_id="${PLUGLAYER_INSTALL_ENVIRONMENT:-local}"
-setup_prompt="${PLUGLAYER_SETUP_PROMPT:-Connect PlugLayer with OAuth in your browser.}"
 installed_url="${PLUGLAYER_INSTALLED_URL:-}"
 failure_url="${PLUGLAYER_INSTALL_FAILURE_URL:-}"
 cli_guide="${PLUGLAYER_CLI_GUIDE:-}"
@@ -134,31 +133,6 @@ esac
 # This callback reports files/registration only, never OAuth readiness.
 curl -fsS --max-time 10 -X POST "$installed_url" >/dev/null || say 'Package installed; portal status could not refresh.'
 trap - ERR
-say "4/4 · Opening $label to connect PlugLayer with browser OAuth"
-say 'Answer your agent’s directory-trust prompt first. Your agent then opens browser OAuth.'
-say 'Keep the agent running while you sign in. Its browser callback returns the connection to this terminal.'
-say 'The agent verifies your account and projects before reporting ready.'
-# A TUI needs a controlling terminal. Redirecting stdin alone from a piped
-# installer is insufficient for some CLI wrappers/crossterm versions.
-agent_args=("$cli")
-[ "$target" != antigravity ] || agent_args+=(--prompt-interactive)
-agent_args+=("$setup_prompt")
-printf -v recovery_command '%q ' "${agent_args[@]}"
-say "If your agent closes, run this in a new terminal: $recovery_command"
-if ! command -v script >/dev/null || ! ( : < /dev/tty > /dev/tty ) 2>/dev/null; then
-  say "Plugin installed. Run the command above to finish browser OAuth."
-  exit 0
-fi
-launcher="$work/connect.sh"
-{ printf '#!/usr/bin/env bash\nexec '; printf '%q ' "${agent_args[@]}"; printf '\n'; } > "$launcher"
-export PLUGLAYER_CONNECT_LAUNCHER="$launcher"
-# Preserve native trust and installation approvals. No automatic trust flags.
-if [ "$(uname -s)" = Darwin ]; then
-  if ! script -q /dev/null bash "$launcher" < /dev/tty > /dev/tty 2>&1; then
-    say "Plugin installed; agent startup stopped. Run the command above to finish OAuth."
-  fi
-else
-  if ! script -q -e -c 'exec bash "$PLUGLAYER_CONNECT_LAUNCHER"' /dev/null < /dev/tty > /dev/tty 2>&1; then
-    say "Plugin installed; agent startup stopped. Run the command above to finish OAuth."
-  fi
-fi
+say "4/4 · PlugLayer $version installed in $label"
+say "Restart or reload $label if the plugin is not visible in your current session."
+say "Connect PlugLayer through $label's native plugin connection UI when needed."
