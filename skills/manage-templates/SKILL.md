@@ -60,3 +60,7 @@ access, and approval. Never call Admin Center routes with a public plugin token.
   redeploy impact, then poll and verify its result. Do not create a replacement app.
 - If a tool or schema route is missing, report the server/backend version mismatch;
   never bypass it with browser-admin APIs or invent a successful save/submission.
+
+## Non-root runtime verification
+
+Each root-start template needs an explicit supported service user (numeric UID:GID or an image account that the backend resolves). Keep the full workload security baseline. Verify the exact image under that identity with a fresh volume, initialization/authenticated connectivity, persisted data, and restart before submission. Check existing-data compatibility separately; never invent UID/GID from an image family or treat readiness alone as proof.

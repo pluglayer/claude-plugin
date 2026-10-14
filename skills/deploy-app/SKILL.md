@@ -366,3 +366,7 @@ Always summarize:
 - database template / engine and connection details if a database was part of the work
 - follow-up env suggestions if relevant
 - next step or fix if needed
+
+## Runtime identity and persistent storage
+
+The backend validates the exact image before rollout, resolves named non-root users to numeric UID/GID, and grants group write access only to app-owned PVCs. Retain non-root execution and the security baseline. For custom root-start images, fix the Dockerfile and its writable paths or choose a compatible non-root image; never advise disabling policy or chmod 777. Select storage size/mount path through the existing deploy tools. Preserve the app record, PVC and storage group on redeploy. A successful readiness check is not a persistence test: write application data, restart, and confirm it survives before claiming persistence is verified.
