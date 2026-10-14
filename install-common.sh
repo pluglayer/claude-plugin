@@ -47,6 +47,105 @@ find_cli() {
     antigravity) cli="$(command -v agy || true)" ;;
   esac
 }
+# Remove only our entry from shared catalogs. Never remove the personal source,
+# which may also own private operator or unrelated plugins.
+remove_legacy_plugin() {
+  local selector="$1"
+  if ! "$cli" plugin remove "$selector" < /dev/null > "$work/remove.log" 2>&1; then
+    if ! grep -Eiq 'not installed|not found|could not find|no plugin' "$work/remove.log"; then
+      fail "Could not migrate the existing PlugLayer registration: $selector. Retry after resolving the native plugin manager error."
+    fi
+  fi
+}
+remove_legacy_marketplace() {
+  if ! "$cli" plugin marketplace remove "$1" < /dev/null > "$work/remove-marketplace.log" 2>&1; then
+    grep -Eiq 'not configured|not found|not added|could not find' "$work/remove-marketplace.log" || fail "Could not migrate the old PlugLayer marketplace: $1."
+  fi
+}
+migrate_catalog() {
+  local catalog="$1" selector="$2" info legacy_name total matches replacement
+  [ -f "$catalog" ] || return 0
+  [ ! -L "$catalog" ] || fail "Preserving linked catalog: $catalog. Resolve the PlugLayer entry through the native plugin manager."
+  info="$(awk -v plugin="$public_name" -v action=inspect -f "$source/catalog.awk" "$catalog")" || fail "Preserving unreadable plugin catalog: $catalog."
+  read -r legacy_name total matches <<< "$info"
+  [ "$matches" -gt 0 ] || return 0
+  # Parse before changing native registration; retain a recoverable catalog copy.
+  awk -v plugin="$public_name" -f "$source/catalog.awk" "$catalog" > "$work/catalog.json" || fail "Preserving unreadable plugin catalog: $catalog."
+  remove_legacy_plugin "$selector"
+  if [ ! -e "$catalog.pluglayer-backup" ]; then cp "$catalog" "$catalog.pluglayer-backup"; fi
+  replacement="$(mktemp "$(dirname "$catalog")/.pluglayer-catalog.XXXXXX")"
+  cat "$work/catalog.json" > "$replacement"
+  mv "$replacement" "$catalog"
+}
+migrate_public_catalogs() {
+  local legacy catalog info legacy_name total matches
+  if [ "$target" = codex ]; then
+    migrate_catalog "${HOME}/.agents/plugins/marketplace.json" "$public_name@personal"
+  fi
+  # These paths and identities were created by older Direct installers. Keep
+  # mixed/edited marketplaces registered and remove only the public entry.
+  for legacy in "${HOME}/.pluglayer/marketplaces/${market_prefix}-"*; do
+    [ -d "$legacy" ] || continue
+    catalog="$legacy/$catalog_relative"
+    [ -f "$catalog" ] || continue
+    info="$(awk -v plugin="$public_name" -v action=inspect -f "$source/catalog.awk" "$catalog")" || fail "Preserving unreadable plugin catalog: $catalog."
+    read -r legacy_name total matches <<< "$info"
+    [[ "$legacy_name" =~ ^pluglayer-direct-([a-f0-9]{12}|local)$ ]] || continue
+    [ "$matches" -gt 0 ] || continue
+    migrate_catalog "$catalog" "$public_name@$legacy_name"
+    if [ "$total" -eq "$matches" ]; then
+      remove_legacy_marketplace "$legacy_name"
+    fi
+  done
+}
+register_public_marketplace() {
+  local old_root info old_name total matches
+  if "$cli" plugin marketplace add "$marketplace" < /dev/null > "$work/add.log" 2>&1; then
+    cat "$work/add.log"; return 0
+  fi
+  # Prompt installs can have the same identity backed by the public Git repo.
+  # Replace that source only when its catalog contains exclusively our plugin.
+  if [ "$target" = codex ]; then
+    "$cli" plugin marketplace list < /dev/null > "$work/marketplaces.txt"
+    old_root="$(awk '$1 == "pluglayer" {sub(/^pluglayer[ \t]+/, ""); print}' "$work/marketplaces.txt")"
+  else
+    old_root="$(awk -v action=location -f "$source/catalog.awk" "${HOME}/.claude/plugins/known_marketplaces.json")" || fail 'Could not inspect the existing PlugLayer marketplace.'
+  fi
+  [ -n "$old_root" ] && [ -f "$old_root/$catalog_relative" ] || fail 'Could not register PlugLayer. Resolve the native marketplace error and retry.'
+  info="$(awk -v plugin="$public_name" -v action=inspect -f "$source/catalog.awk" "$old_root/$catalog_relative")" || fail 'Preserving unreadable existing PlugLayer marketplace.'
+  read -r old_name total matches <<< "$info"
+  [ "$old_name" = pluglayer ] && [ "$total" -gt 0 ] && [ "$total" -eq "$matches" ] || fail 'Preserving a customized PlugLayer marketplace containing other plugins.'
+  "$cli" plugin marketplace remove pluglayer < /dev/null
+  "$cli" plugin marketplace add "$marketplace" < /dev/null
+}
+retain_newer_package() {
+  local current="$1" manifest="$2" current_version
+  [ -L "$current" ] && [ -f "$current/$manifest" ] || return 0
+  current_version="$(awk -v action=version -f "$source/catalog.awk" "$current/$manifest")" || fail 'Preserving unreadable installed PlugLayer manifest.'
+  if awk -v installed="$current_version" -v requested="$version" 'BEGIN {split(installed,a,"."); split(requested,b,"."); for(i=1;i<=3;i++) {if(a[i]+0>b[i]+0) exit 0; if(a[i]+0<b[i]+0) exit 1} exit 1}'; then
+    install_root="$(readlink "$current")"
+    version="$current_version"
+    say "Keeping the newer installed PlugLayer $version package."
+  fi
+}
+write_public_catalog() {
+  local path="$marketplace/$catalog_relative" replacement
+  if [ -f "$path" ]; then
+    [ ! -L "$path" ] || fail "Preserving linked catalog: $path."
+    awk -v plugin="$public_name" -v action=canonical -v expected_path="./plugins/$public_name" -v version="$version" -f "$source/catalog.awk" "$path" > "$work/catalog-updated.json" || fail 'Preserving a customized PlugLayer catalog. Resolve its source or extra plugin entries before retrying.'
+    replacement="$(mktemp "$(dirname "$path")/.pluglayer-catalog.XXXXXX")"
+    cat "$work/catalog-updated.json" > "$replacement"; mv "$replacement" "$path"
+  else
+    cat "$work/public-catalog.json" > "$path"
+  fi
+}
+verify_public_registration() {
+  "$cli" plugin list < /dev/null > "$work/plugins.txt"
+  awk '$1 ~ /^pluglayer-codex-plugin@/ { print }' "$work/plugins.txt" > "$work/public-plugins.txt"
+  [ "$(wc -l < "$work/public-plugins.txt" | tr -d ' ')" = 1 ] || fail 'PlugLayer setup is incomplete: another public registration remains. Preserve shared catalogs and resolve it through the native plugin manager.'
+  awk -v version="$version" '$1 == "pluglayer-codex-plugin@pluglayer" && $2 == "installed," && $3 == "enabled" && $4 == version { found=1 } END { exit !found }' "$work/public-plugins.txt" || fail 'PlugLayer registration or version could not be verified.'
+  cat "$work/public-plugins.txt"
+}
 say "1/4 · Checking $label requirements"
 command -v curl >/dev/null || fail 'curl is required. Install it using your OS package manager, then retry.'
 command -v tar >/dev/null || fail 'tar is required. Install it using your OS package manager, then retry.'
@@ -85,29 +184,38 @@ fi
 say "3/4 · Registering skills, agents and hosted MCP in $label"
 case "$target" in
   codex)
-    # Replace the older public package if it was installed from the personal marketplace.
-    # This prevents two enabled copies from racing for the same plugin identity.
-    "$cli" plugin remove "pluglayer-codex-plugin@personal" < /dev/null >/dev/null 2>&1 || true
-    marketplace="${HOME}/.pluglayer/marketplaces/codex-${environment_id}"
+    public_name=pluglayer-codex-plugin
+    market_prefix=codex
+    catalog_relative=.agents/plugins/marketplace.json
+    marketplace="${HOME}/.pluglayer/marketplaces/codex"
     mkdir -p "$marketplace/.agents/plugins" "$marketplace/plugins"
+    retain_newer_package "$marketplace/plugins/pluglayer-codex-plugin" plugin.json
     if [ -L "$marketplace/plugins/pluglayer-codex-plugin" ]; then rm "$marketplace/plugins/pluglayer-codex-plugin"
     elif [ -e "$marketplace/plugins/pluglayer-codex-plugin" ]; then fail "Unmanaged marketplace path exists: $marketplace/plugins/pluglayer-codex-plugin"; fi
     ln -s "$install_root" "$marketplace/plugins/pluglayer-codex-plugin"
-    printf '{"name":"pluglayer-direct-%s","plugins":[{"name":"pluglayer-codex-plugin","source":{"source":"local","path":"./plugins/pluglayer-codex-plugin"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Developer Tools"}]}\n' "$environment_id" > "$marketplace/.agents/plugins/marketplace.json"
-    "$cli" plugin marketplace add "$marketplace" < /dev/null
-    "$cli" plugin add "pluglayer-codex-plugin@pluglayer-direct-${environment_id}" < /dev/null
-    "$cli" plugin list --marketplace "pluglayer-direct-${environment_id}" < /dev/null
+    printf '{"name":"pluglayer","interface":{"displayName":"PlugLayer"},"plugins":[{"name":"pluglayer-codex-plugin","source":{"source":"local","path":"./plugins/pluglayer-codex-plugin"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Developer Tools"}]}\n' > "$work/public-catalog.json"
+    write_public_catalog
+    register_public_marketplace
+    "$cli" plugin add "pluglayer-codex-plugin@pluglayer" < /dev/null
+    migrate_public_catalogs
+    verify_public_registration
     ;;
   claude-code)
-    "$cli" plugin remove "pluglayer@personal" < /dev/null >/dev/null 2>&1 || true
-    marketplace="${HOME}/.pluglayer/marketplaces/claude-${environment_id}"
+    public_name=pluglayer
+    market_prefix=claude
+    catalog_relative=.claude-plugin/marketplace.json
+    marketplace="${HOME}/.pluglayer/marketplaces/claude"
     mkdir -p "$marketplace/.claude-plugin" "$marketplace/plugins"
+    retain_newer_package "$marketplace/plugins/pluglayer" .claude-plugin/plugin.json
     if [ -L "$marketplace/plugins/pluglayer" ]; then rm "$marketplace/plugins/pluglayer"
     elif [ -e "$marketplace/plugins/pluglayer" ]; then fail "Unmanaged marketplace path exists: $marketplace/plugins/pluglayer"; fi
     ln -s "$install_root" "$marketplace/plugins/pluglayer"
-    printf '{"name":"pluglayer-direct-%s","owner":{"name":"PlugLayer"},"plugins":[{"name":"pluglayer","source":"./plugins/pluglayer","version":"%s"}]}\n' "$environment_id" "$version" > "$marketplace/.claude-plugin/marketplace.json"
-    "$cli" plugin marketplace add "$marketplace" < /dev/null
-    "$cli" plugin install "pluglayer@pluglayer-direct-${environment_id}" --scope user < /dev/null
+    printf '{"name":"pluglayer","owner":{"name":"PlugLayer"},"plugins":[{"name":"pluglayer","source":"./plugins/pluglayer","version":"%s"}]}\n' "$version" > "$work/public-catalog.json"
+    write_public_catalog
+    register_public_marketplace
+    "$cli" plugin install "pluglayer@pluglayer" --scope user < /dev/null
+    "$cli" plugin update "pluglayer@pluglayer" --scope user < /dev/null
+    migrate_public_catalogs
     "$cli" plugin list < /dev/null
     ;;
   cursor)
@@ -131,7 +239,7 @@ case "$target" in
     ;;
 esac
 # This callback reports files/registration only, never OAuth readiness.
-curl -fsS --max-time 10 -X POST "$installed_url" >/dev/null || say 'Package installed; portal status could not refresh.'
+if [ -n "$installed_url" ]; then curl -fsS --max-time 10 -X POST "$installed_url" >/dev/null || say 'Package installed; portal status could not refresh.'; fi
 trap - ERR
 say "4/4 · PlugLayer $version installed in $label"
 say "Restart or reload $label if the plugin is not visible in your current session."
