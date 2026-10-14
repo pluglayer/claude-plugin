@@ -4,7 +4,7 @@ You are installing the official PlugLayer Claude Code plugin. Follow this
 document completely and do not substitute an MCP-only connection for the
 plugin.
 
-**Current public release: `1.1.38`**
+**Current public release: `1.1.39`**
 
 When checking an existing installation, fetch this file from the official
 repository and compare the installed package with this release marker. Verify
@@ -17,6 +17,13 @@ is needed.
 2. Use Claude Code's native plugin/marketplace flow to add
    `https://github.com/pluglayer/claude-plugin` and install `pluglayer`, or
    update it when the installed version is older than the available version.
+   Use only `pluglayer@pluglayer`; reuse that marketplace across upgrades and
+   portal accounts. Never create another personal or account-specific catalog.
+   To migrate older Direct registrations, run the package's `install-common.sh`
+   or `install.ps1` yourself with `PLUGLAYER_INSTALL_TARGET=claude-code`,
+   `PLUGLAYER_PLUGIN_SOURCE_DIR` set to the package root, and
+   `PLUGLAYER_PLUGIN_VERSION` set to its manifest version. Omit portal callback
+   URLs. Preserve unrelated catalogs and verify one public registration.
 3. Confirm the package contains its skills, seven agents, and hosted MCP
    connection. Reload plugins if the current session needs it.
 4. Use the bundled MCP connection at `https://mcp.pluglayer.com/mcp`.
