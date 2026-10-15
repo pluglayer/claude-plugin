@@ -196,6 +196,9 @@ case "$target" in
     printf '{"name":"pluglayer","interface":{"displayName":"PlugLayer"},"plugins":[{"name":"pluglayer-codex-plugin","source":{"source":"local","path":"./plugins/pluglayer-codex-plugin"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Developer Tools"}]}\n' > "$work/public-catalog.json"
     write_public_catalog
     register_public_marketplace
+    # plugin add does not replace an installed copy. Remove the public plugin
+    # from local config and cache first, then install this package.
+    remove_legacy_plugin "pluglayer-codex-plugin@pluglayer"
     "$cli" plugin add "pluglayer-codex-plugin@pluglayer" < /dev/null
     migrate_public_catalogs
     verify_public_registration
@@ -213,6 +216,9 @@ case "$target" in
     printf '{"name":"pluglayer","owner":{"name":"PlugLayer"},"plugins":[{"name":"pluglayer","source":"./plugins/pluglayer","version":"%s"}]}\n' "$version" > "$work/public-catalog.json"
     write_public_catalog
     register_public_marketplace
+    # plugin install does not replace an installed copy. Remove the public
+    # plugin first, then install this package.
+    remove_legacy_plugin "pluglayer@pluglayer"
     "$cli" plugin install "pluglayer@pluglayer" --scope user < /dev/null
     "$cli" plugin update "pluglayer@pluglayer" --scope user < /dev/null
     migrate_public_catalogs
@@ -221,11 +227,9 @@ case "$target" in
   cursor)
     dest="${HOME}/.cursor/plugins/local/pluglayer-cursor-plugin"
     managed="${HOME}/.pluglayer/plugin-state/cursor-${environment_id}"
-    if [ -e "$dest" ]; then
-      if ! diff -qr "$dest" "$install_root" >/dev/null; then
-        [ -d "$managed" ] && diff -qr "$dest" "$managed" >/dev/null || fail "Preserving user-edited Cursor plugin: $dest. Resolve it through the prompt option."
-        rm -rf "$dest"
-      fi
+    # Replace an already installed local plugin. Cursor has no plugin remove command.
+    if [ -e "$dest" ] && ! diff -qr "$dest" "$install_root" >/dev/null; then
+      rm -rf "$dest"
     fi
     mkdir -p "$(dirname "$dest")" "$(dirname "$managed")"
     if ! [ -e "$dest" ]; then cp -R "$install_root" "$dest"; fi
@@ -234,6 +238,10 @@ case "$target" in
     say 'Cursor loads the complete local plugin. Reload any open Cursor window.'
     ;;
   antigravity)
+    # plugin install does not replace an installed copy. Uninstall by plugin name first.
+    if ! "$cli" plugin uninstall pluglayer-antigravity-plugin < /dev/null > "$work/remove.log" 2>&1; then
+      grep -Eiq 'not installed|not found|could not find|no plugin' "$work/remove.log" || fail "Could not replace the installed PlugLayer plugin. Resolve the native plugin manager error and retry."
+    fi
     "$cli" plugin install "$install_root" < /dev/null
     "$cli" plugin list < /dev/null
     ;;
