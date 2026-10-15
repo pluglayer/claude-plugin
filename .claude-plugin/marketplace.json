@@ -12,5 +12,8 @@
       "source": "./",
       "homepage": "https://pluglayer.com"
     }
-  ]
+  ],
+  "metadata": {
+    "description": "Official PlugLayer deployment, operations and template workflows."
+  }
 }
