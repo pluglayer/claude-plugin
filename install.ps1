@@ -168,15 +168,19 @@ try {
         if (!(Test-Path -LiteralPath $dest)) { Copy-Item -LiteralPath $package -Destination $dest -Recurse }
         if (Test-Path -LiteralPath $managed) { Remove-Item -LiteralPath $managed -Recurse -Force }
         Copy-Item -LiteralPath $package -Destination $managed -Recurse
-        if ($target -eq 'codex') { $catalog = @{ name=$marketName; interface=@{displayName='PlugLayer'}; plugins=@(@{name=$publicName;source=@{source='local';path='./plugins/pluglayer-codex-plugin'};policy=@{installation='AVAILABLE';authentication='ON_INSTALL'};category='Developer Tools'}) }; Write-PublicCatalog (Join-Path (Join-Path $marketplace $catalogDir) 'marketplace.json') $catalog; Register-PublicMarketplace; Run $cli @('plugin','add',($publicName + '@' + $marketName)) }
-        else { $catalog = @{ name=$marketName; owner=@{name='PlugLayer'}; plugins=@(@{name=$publicName;source='./plugins/pluglayer';version=$version}) }; Write-PublicCatalog (Join-Path (Join-Path $marketplace $catalogDir) 'marketplace.json') $catalog; Register-PublicMarketplace; Run $cli @('plugin','install',($publicName + '@' + $marketName),'--scope','user'); Run $cli @('plugin','update',($publicName + '@' + $marketName),'--scope','user') }
+        if ($target -eq 'codex') { $catalog = @{ name=$marketName; interface=@{displayName='PlugLayer'}; plugins=@(@{name=$publicName;source=@{source='local';path='./plugins/pluglayer-codex-plugin'};policy=@{installation='AVAILABLE';authentication='ON_INSTALL'};category='Developer Tools'}) }; Write-PublicCatalog (Join-Path (Join-Path $marketplace $catalogDir) 'marketplace.json') $catalog; Register-PublicMarketplace; Remove-LegacyPlugin ($publicName + '@' + $marketName); Run $cli @('plugin','add',($publicName + '@' + $marketName)) }
+        else { $catalog = @{ name=$marketName; owner=@{name='PlugLayer'}; plugins=@(@{name=$publicName;source='./plugins/pluglayer';version=$version}) }; Write-PublicCatalog (Join-Path (Join-Path $marketplace $catalogDir) 'marketplace.json') $catalog; Register-PublicMarketplace; Remove-LegacyPlugin ($publicName + '@' + $marketName); Run $cli @('plugin','install',($publicName + '@' + $marketName),'--scope','user'); Run $cli @('plugin','update',($publicName + '@' + $marketName),'--scope','user') }
         Migrate-PublicCatalogs
         if ($target -eq 'codex') { Verify-PublicRegistration } else { Run $cli @('plugin','list') }
     } elseif ($target -eq 'cursor') {
         $dest = Join-Path $HOME '.cursor\plugins\local\pluglayer-cursor-plugin'; $managed = Join-Path $HOME ('.pluglayer\plugin-state\cursor-' + $environmentId)
-        if ((Test-Path -LiteralPath $dest) -and !(Assert-Same $dest $package)) { if (!(Assert-Same $dest $managed)) { throw "Preserving user-edited Cursor plugin: $dest. Resolve it using the prompt option." }; Remove-Item $dest -Recurse -Force }
+        if ((Test-Path -LiteralPath $dest) -and !(Assert-Same $dest $package)) { Remove-Item $dest -Recurse -Force }
         New-Item -ItemType Directory -Force -Path (Split-Path $dest),(Split-Path $managed) | Out-Null; if (!(Test-Path $dest)) { Copy-Item $package $dest -Recurse }; if (Test-Path $managed) { Remove-Item $managed -Recurse -Force }; Copy-Item $package $managed -Recurse; Say 'Cursor loads the complete local plugin. Reload any open Cursor window.'
-    } else { Run $cli @('plugin','install',$package); Run $cli @('plugin','list') }
+    } else {
+        $removed = Capture-Native @('plugin','uninstall','pluglayer-antigravity-plugin')
+        if ($removed.exitCode -ne 0 -and $removed.output -notmatch '(?i)not installed|not found|could not find|no plugin') { throw 'Could not replace the installed PlugLayer plugin. Resolve the native plugin manager error and retry.' }
+        Run $cli @('plugin','install',$package); Run $cli @('plugin','list')
+    }
     if ($installedUrl) { try { Invoke-RestMethod -Method Post -Uri $installedUrl | Out-Null } catch { Write-Warning 'Package installed; portal status could not refresh.' } }
     Say "4/4 · PlugLayer $version installed in $label"
     Say "Restart or reload $label if the plugin is not visible in your current session."

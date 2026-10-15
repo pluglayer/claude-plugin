@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.41 — 2026-10-15 (unreleased)
+
+- Route PlugLayer questions to the matching tool. Use setup only for install, update, or reconnect, and do not browse the site for data the tools return.
+
 ## 1.1.40 — 2026-10-15 (unreleased)
 
 - Verify setup and native component discovery; keep focused agents available without changing unrelated conversations.

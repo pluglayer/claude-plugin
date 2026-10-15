@@ -1,9 +1,11 @@
 ---
 name: setup
-description: Set up, verify, or repair the PlugLayer plugin installation and hosted OAuth connection; use after install or upgrade.
+description: Install, update, repair, or reconnect the PlugLayer plugin. Use only when the user asks to install, update, repair, or reconnect. Do not use for projects, apps, deploys, domains, or account questions; use use-pluglayer instead.
 ---
 
 # Set up PlugLayer
+
+If the user wants projects, apps, status, or a deploy, stop. Use `use-pluglayer` and call the tool. This skill is only for install, upgrade, and reconnect.
 
 Read the bundled `installation_instruction.md` from this package root. Inspect
 native plugin inventory and retain one public registration, preserving private
