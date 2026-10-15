@@ -217,7 +217,7 @@ For current-repo deployments:
 5. build the image locally
 6. test the image locally before pushing it
 7. keep temporary deployment files inside `.pluglayer/` in the local repo
-8. if the image only exists locally, export it as an OCI archive into `.pluglayer/` and use the uploaded-image deploy flow
+8. if the image only exists locally, export it as an OCI archive into `.pluglayer/` and upload it with the flow below
 9. use plain `deploy_image` only when the source image is already pullable from an allowed listed repository
 10. after push/deploy, perform full cleanup for artifacts created during this task:
    - delete the temporary image archive
@@ -237,6 +237,17 @@ For current-repo deployments:
 Cleanup is required. Finishing the deploy means cleaning both filesystem artifacts and Docker artifacts created for that deploy.
 Cleanup must stay scoped to PlugLayer-generated artifacts from the current task, not the user's broader Docker environment.
 Do not delete images based only on recency, size, repo similarity, or guesswork. Delete only by exact PlugLayer naming plus current-task manifest match.
+
+## Uploading a local image when MCP is hosted
+Hosted PlugLayer MCP runs on PlugLayer's servers. `upload_image_archive_and_deploy(image_archive_path=...)` can read a path only when the MCP process is on that same machine. Do not stop and tell the user the hosted server cannot read the archive.
+
+1. Export the OCI archive under `.pluglayer/` on the user's machine and record its exact byte size.
+2. Call `begin_local_image_upload` with that filename and size. Pass `project_id` for a new app, or `app_id` when the app already exists.
+3. From the local machine, PUT the archive in order to `{api_base_url}/v1/plugin/image-uploads/{upload_id}/chunks/{index}`. Send `X-Pluglayer-Upload-Token`, `X-Upload-Offset`, and `X-Chunk-SHA256`. Each chunk must be at most `chunk_size` bytes. Pass the token through an environment variable. Do not print it, put it on the command line, or include it in the user-visible reply.
+4. Call `complete_local_image_upload` with the same `upload_id` and the deploy or redeploy fields.
+5. Delete the local archive during the normal cleanup.
+
+`upload_image_archive_and_deploy` remains the path when the archive is already on a local MCP host. GitHub Actions is the follow-up for later pushes. It is not a substitute for this first upload.
 
 Do not ask the user for a prebuilt image if the current repo can be built confidently.
 Do not push images to any repository that is not listed by PlugLayer.
