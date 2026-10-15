@@ -64,3 +64,12 @@ access, and approval. Never call Admin Center routes with a public plugin token.
 ## Non-root runtime verification
 
 Each root-start template needs an explicit supported service user (numeric UID:GID or an image account that the backend resolves). Keep the full workload security baseline. Verify the exact image under that identity with a fresh volume, initialization/authenticated connectivity, persisted data, and restart before submission. Check existing-data compatibility separately; never invent UID/GID from an image family or treat readiness alone as proof.
+
+## Compact discovery and session cleanup
+
+Schema/context tools return summaries by default. Select `section` to retrieve a
+complete schema, or page context with `offset`/`limit`. Planning creates or resumes
+a launch conversation; retain its returned `session_id`. A supplied title updates
+a resumed session. Use `close_template_launch_session` when finished; it archives
+the conversation without cancelling tasks or deleting apps. A missing close route
+means the backend needs upgrading; do not claim cleanup succeeded.
