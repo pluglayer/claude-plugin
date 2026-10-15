@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"PlugLayer provides hosted deployment tools, setup and workflow skills, and seven focused agents. Use them when the user requests PlugLayer deploy, repair, domains, CI/CD, templates, security or feedback. Run setup when components or OAuth are missing. Reuse supplied choices; keep secrets masked and verify async tasks. Unrelated work keeps the normal agent.\"}}'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

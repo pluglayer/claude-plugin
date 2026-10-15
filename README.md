@@ -43,3 +43,13 @@ domains, CI/CD, project metadata, environment updates, feedback, security, and
 deployment repair.
 
 Detailed agent setup: [installation instructions](installation_instruction.md).
+
+## Setup and release checks
+
+Run the bundled `setup` skill after installation or upgrade. It verifies package,
+focused agents and hosted OAuth separately. See [CHANGELOG.md](CHANGELOG.md).
+Connection values are masked by default; prefer server-side env sync.
+
+The optional session-start hook only adds a short capability reminder. It does
+not read files, contact services, change permissions or install dependencies.
+Skills and agents remain usable when hooks are disabled by host policy.

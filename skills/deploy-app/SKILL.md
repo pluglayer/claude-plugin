@@ -34,7 +34,7 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
    - Include `[you choose]` as an option when the user wants the agent to decide.
    - Best practice: separate distinct software systems into separate projects.
    - If the user asks to update a project's display name or description, use `update_project_metadata`; use `rename_project` as the name-only shortcut. Explain that project metadata updates preserve the slug, namespace, existing app URLs, and custom-domain routing. Use the dedicated domain tools for domain changes.
-6. Always ask for the app name before deployment and suggest names that fit the project, for example:
+6. Reuse the app name already supplied or authorized by the user. If missing, ask once and suggest names that fit the project, for example:
    - `mongo-db`
    - `api-backend`
    - `web-frontend`
@@ -46,7 +46,7 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
    - Example: if slug is `api`, the URL can look like `https://api.<project>.<user>.apps.pluglayer.io`.
    - Let the user keep them the same or choose different values.
    - Make it clear they can update both later.
-8. Before deployment, ask whether they want:
+8. Reuse the user’s domain choice. If unspecified, ask whether they want:
    - the default PlugLayer subdomain for now
    - one of the existing project domains
    - a new custom domain
@@ -75,7 +75,7 @@ If the app is already deployed and the local repo has git plus a GitHub `origin`
    - After the user attaches or purchases compute, call `plan_dedicated_compute` again. Deploy only when it reports `can_deploy_now: yes`.
 11. Check whether this project already has apps.
    - List the available apps for the user.
-   - If one likely matches the intended deploy target, ask whether they want to update it, replace it, or add a separate new app.
+   - If one likely matches but the user’s intent is ambiguous, ask whether to update it, replace it, or add a separate new app. Reuse an explicit target or prior answer.
    - Include a recommended option and `[you choose]` for complex operations.
    - If the namespace already looks full, quota-limited, or occupied by a failed/crash-looping older workload, refuse the separate new-app path by default and steer the user into update or replace flow instead.
 12. Choose placement:
@@ -370,3 +370,11 @@ Always summarize:
 ## Runtime identity and persistent storage
 
 The backend validates the exact image before rollout, resolves named non-root users to numeric UID/GID, and grants group write access only to app-owned PVCs. Retain non-root execution and the security baseline. For custom root-start images, fix the Dockerfile and its writable paths or choose a compatible non-root image; never advise disabling policy or chmod 777. Select storage size/mount path through the existing deploy tools. Preserve the app record, PVC and storage group on redeploy. A successful readiness check is not a persistence test: write application data, restart, and confirm it survives before claiming persistence is verified.
+
+## Connection values
+
+Connection tools mask every value by default. Prefer `sync_database_env_to_app`
+for wiring without exposing plaintext to the conversation. Use `reveal=true` only
+for an explicit need and never copy revealed values into reports or feedback.
+After upgrading a backend affected by malformed database connection fields,
+re-sync affected app env vars; do not edit existing database passwords blindly.
