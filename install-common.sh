@@ -18,11 +18,12 @@ trap cleanup EXIT
 trap report_failure ERR
 say() { printf '\n%s\n' "$*"; }
 fail() { say "$*" >&2; report_failure; exit 1; }
+# /dev/tty is mode 0666 even when this process has no controlling terminal.
+# A permission test would claim sign-in can open and then fail the redirect.
+controlling_terminal() { (trap - ERR; : <>/dev/tty) >/dev/null 2>&1; }
 confirm() {
   local answer
-  if ! [ -r /dev/tty ] || ! [ -w /dev/tty ]; then
-    fail "Open an interactive terminal and run the same command again."
-  fi
+  controlling_terminal || fail "Open an interactive terminal and run the same command again."
   printf '%s [y/N] ' "$1" > /dev/tty
   IFS= read -r answer < /dev/tty
   case "$answer" in y|Y|yes|YES) return 0 ;; *) return 1 ;; esac
@@ -139,6 +140,45 @@ write_public_catalog() {
     cat "$work/public-catalog.json" > "$path"
   fi
 }
+# Open the host's native MCP sign-in. This is not an agent conversation.
+# Older CLIs have no login command; the package still counts as installed.
+oauth_note="Connect PlugLayer through $label's native plugin connection UI when needed."
+manual_sign_in() { oauth_note="Sign in from Plugins -> PlugLayer -> Connector -> Authenticate."; }
+start_native_sign_in() {
+  local server="$1" help_text list_text list_line sign_in_ok=0
+  help_text="$("$cli" mcp --help </dev/null 2>&1 || true)"
+  if ! printf '%s\n' "$help_text" | grep -Eq '(^|[^[:alnum:]_-])login([^[:alnum:]_-]|$)'; then
+    if [ "$target" = claude-code ]; then
+      oauth_note="Sign in from Plugins -> PlugLayer -> Connector -> Authenticate. Claude Code 2.1.186 or newer opens this sign-in from the installer."
+    elif [ "$target" = antigravity ]; then
+      manual_sign_in
+    fi
+    return 0
+  fi
+  list_text="$("$cli" mcp list </dev/null 2>&1 || true)"
+  list_line="$(printf '%s\n' "$list_text" | grep -F "$server" || true)"
+  if [ -n "$list_line" ] && printf '%s\n' "$list_line" | grep -Eiq 'connected|ready' && ! printf '%s\n' "$list_line" | grep -Eiq 'needs authentication|not authenticated|auth needed'; then
+    oauth_note="PlugLayer is already signed in."
+    return 0
+  fi
+  # Cursor and Antigravity only authenticate servers their CLI can see.
+  # Claude Code plugin connectors use the scoped name even before the first session.
+  if [ "$target" != claude-code ] && { [ -z "$list_line" ] || ! printf '%s\n' "$list_line" | grep -Eiq 'needs authentication|not authenticated|auth needed|authenticate'; }; then
+    return 0
+  fi
+  if ! [ -t 0 ] && ! controlling_terminal; then
+    manual_sign_in
+    return 0
+  fi
+  say "Opening PlugLayer sign-in in your browser."
+  if [ -t 0 ]; then
+    "$cli" mcp login "$server" && sign_in_ok=1 || true
+  else
+    "$cli" mcp login "$server" < /dev/tty && sign_in_ok=1 || true
+  fi
+  if [ "$sign_in_ok" = 1 ]; then oauth_note="PlugLayer is signed in."; else manual_sign_in; fi
+  return 0
+}
 verify_public_registration() {
   "$cli" plugin list < /dev/null > "$work/plugins.txt"
   awk '$1 ~ /^pluglayer-codex-plugin@/ { print }' "$work/plugins.txt" > "$work/public-plugins.txt"
@@ -251,4 +291,8 @@ if [ -n "$installed_url" ]; then curl -fsS --max-time 10 -X POST "$installed_url
 trap - ERR
 say "4/4 · PlugLayer $version installed in $label"
 say "Restart or reload $label if the plugin is not visible in your current session."
-say "Connect PlugLayer through $label's native plugin connection UI when needed."
+case "$target" in
+  claude-code) start_native_sign_in "plugin:pluglayer:pluglayer" ;;
+  cursor|antigravity) start_native_sign_in "pluglayer" ;;
+esac
+say "$oauth_note"

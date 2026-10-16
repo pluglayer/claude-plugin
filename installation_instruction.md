@@ -4,7 +4,7 @@ You are installing the official PlugLayer Claude Code plugin. Follow this
 document completely and do not substitute an MCP-only connection for the
 plugin.
 
-**Current public release: `1.1.41`**
+**Current public release: `1.1.42`**
 
 When checking an existing installation, fetch this file from the official
 repository and compare the installed package with this release marker. Verify
@@ -49,4 +49,4 @@ change its environment. Report any native configuration limitation.
 
 ## Portal Direct install
 
-From PlugLayer Portal → Agent setup, choose **Direct install**, select your operating system and Windows terminal when applicable, then run the generated command. The URL is reusable for 10 minutes, checks the native agent CLI, installs missing CLI prerequisites through the official installer, and finishes after registering the plugin. Restart or reload your agent if the plugin is not visible, then connect PlugLayer through the agent’s native plugin connection UI when needed. It does not install Python or require a PlugLayer API token.
+From PlugLayer Portal → Agent setup, choose **Direct install**, select your operating system and Windows terminal when applicable, then run the generated command. The URL is reusable for 10 minutes, checks the native agent CLI, installs missing CLI prerequisites through the official installer, and finishes after registering the plugin. When the agent CLI provides `mcp login`, the installer opens PlugLayer sign-in in the browser. Otherwise, restart or reload the agent if the plugin is not visible, then sign in from Plugins → PlugLayer → Connector → Authenticate. It does not install Python or require a PlugLayer API token.

@@ -120,6 +120,28 @@ function Write-PublicCatalog([string]$Path, $Value) {
     }
     Write-Json $Path $Value
 }
+$script:OauthNote = "Connect PlugLayer through $label's native plugin connection UI when needed."
+function Set-ManualSignIn { $script:OauthNote = 'Sign in from Plugins -> PlugLayer -> Connector -> Authenticate.' }
+function Start-NativeSignIn([string]$Server) {
+    $help = Capture-Native @('mcp','--help')
+    if ($help.output -notmatch '(^|[^A-Za-z0-9_-])login([^A-Za-z0-9_-]|$)') {
+        if ($target -eq 'claude-code') { $script:OauthNote = 'Sign in from Plugins -> PlugLayer -> Connector -> Authenticate. Claude Code 2.1.186 or newer opens this sign-in from the installer.' }
+        elseif ($target -eq 'antigravity') { Set-ManualSignIn }
+        return
+    }
+    $listed = Capture-Native @('mcp','list')
+    $line = @($listed.output -split "`n" | Where-Object { $_.Contains($Server) } | Select-Object -First 1) -join ''
+    if ($line -and $line -match '(?i)connected|ready' -and $line -notmatch '(?i)needs authentication|not authenticated|auth needed') {
+        $script:OauthNote = 'PlugLayer is already signed in.'
+        return
+    }
+    if ($target -ne 'claude-code' -and (!$line -or $line -notmatch '(?i)needs authentication|not authenticated|auth needed|authenticate')) { return }
+    Say 'Opening PlugLayer sign-in in your browser.'
+    try {
+        & $cli mcp login $Server
+        if ($LASTEXITCODE -eq 0) { $script:OauthNote = 'PlugLayer is signed in.' } else { Set-ManualSignIn }
+    } catch { Set-ManualSignIn }
+}
 function Verify-PublicRegistration {
     $result = Capture-Native @('plugin','list')
     if ($result.exitCode -ne 0) { throw 'Could not verify PlugLayer registration.' }
@@ -184,5 +206,7 @@ try {
     if ($installedUrl) { try { Invoke-RestMethod -Method Post -Uri $installedUrl | Out-Null } catch { Write-Warning 'Package installed; portal status could not refresh.' } }
     Say "4/4 · PlugLayer $version installed in $label"
     Say "Restart or reload $label if the plugin is not visible in your current session."
-    Say "Connect PlugLayer through $label's native plugin connection UI when needed."
+    if ($target -eq 'claude-code') { Start-NativeSignIn 'plugin:pluglayer:pluglayer' }
+    elseif ($target -eq 'cursor' -or $target -eq 'antigravity') { Start-NativeSignIn 'pluglayer' }
+    Say $script:OauthNote
 } catch { try { Invoke-RestMethod -Method Post -Uri $failureUrl | Out-Null } catch {}; throw } finally { if (Test-Path $work) { Remove-Item $work -Recurse -Force } }

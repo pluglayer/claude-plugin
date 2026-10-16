@@ -1,8 +1,13 @@
 # Changelog
 
+## 1.1.42 — 2026-10-16 (unreleased)
+
+- Direct install starts native sign-in only when a terminal can be opened. Headless runs keep the manual connector step.
+
 ## 1.1.41 — 2026-10-15 (unreleased)
 
 - Route PlugLayer questions to the matching tool. Use setup only for install, update, or reconnect, and do not browse the site for data the tools return.
+- Direct install opens native PlugLayer sign-in when the agent CLI provides `mcp login`, instead of leaving connector authentication as a separate click.
 
 ## 1.1.40 — 2026-10-15 (unreleased)
 
