@@ -18,11 +18,12 @@ trap cleanup EXIT
 trap report_failure ERR
 say() { printf '\n%s\n' "$*"; }
 fail() { say "$*" >&2; report_failure; exit 1; }
+# /dev/tty is mode 0666 even when this process has no controlling terminal.
+# A permission test would claim sign-in can open and then fail the redirect.
+controlling_terminal() { (trap - ERR; : <>/dev/tty) >/dev/null 2>&1; }
 confirm() {
   local answer
-  if ! [ -r /dev/tty ] || ! [ -w /dev/tty ]; then
-    fail "Open an interactive terminal and run the same command again."
-  fi
+  controlling_terminal || fail "Open an interactive terminal and run the same command again."
   printf '%s [y/N] ' "$1" > /dev/tty
   IFS= read -r answer < /dev/tty
   case "$answer" in y|Y|yes|YES) return 0 ;; *) return 1 ;; esac
@@ -165,7 +166,7 @@ start_native_sign_in() {
   if [ "$target" != claude-code ] && { [ -z "$list_line" ] || ! printf '%s\n' "$list_line" | grep -Eiq 'needs authentication|not authenticated|auth needed|authenticate'; }; then
     return 0
   fi
-  if ! [ -t 0 ] && { ! [ -r /dev/tty ] || ! [ -w /dev/tty ]; }; then
+  if ! [ -t 0 ] && ! controlling_terminal; then
     manual_sign_in
     return 0
   fi

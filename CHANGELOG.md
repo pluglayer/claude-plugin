@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.42 — 2026-10-16 (unreleased)
+
+- Direct install starts native sign-in only when a terminal can be opened. Headless runs keep the manual connector step.
+
 ## 1.1.41 — 2026-10-15 (unreleased)
 
 - Route PlugLayer questions to the matching tool. Use setup only for install, update, or reconnect, and do not browse the site for data the tools return.
