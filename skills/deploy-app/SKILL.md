@@ -164,6 +164,7 @@ When the user provides a docker-compose stack:
 - get user context
 - update user_context after completed tasks or important learned preferences
 - list/create/remove projects
+- move a running app to another project with move_app_project only after the user confirms both projects
 - get project
 - get apps by project
 - list project domains
