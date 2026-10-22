@@ -1,0 +1,4 @@
+interface:
+  display_name: "App Governance & Prompts"
+  short_description: "Maintain app guidance and use personal or marketplace prompts"
+  default_prompt: "Use PlugLayer governance and prompts for this app task."

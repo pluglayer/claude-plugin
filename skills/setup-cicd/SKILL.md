@@ -5,6 +5,10 @@ description: Set up GitHub-based CI/CD for an already deployed PlugLayer app by 
 
 # Set Up GitHub CI/CD for PlugLayer
 
+For an identified existing app, first load `get_agents_md` and relevant linked governance.
+After meaningful changes, follow `manage-knowledge` to save verified decisions and instructions.
+
+
 Use this skill when the user wants GitHub Actions or CI/CD for an app that is already deployed on PlugLayer.
 
 ## What this skill assumes

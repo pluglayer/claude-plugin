@@ -5,6 +5,10 @@ description: Diagnose and repair a failed PlugLayer deployment by combining Plug
 
 # Fix PlugLayer Deployment
 
+For an identified existing app, first load `get_agents_md` and relevant linked governance.
+After meaningful changes, follow `manage-knowledge` to save verified decisions and instructions.
+
+
 Use this skill when a PlugLayer deployment failed, is crash-looping, or is not reachable.
 
 ## Debug order
