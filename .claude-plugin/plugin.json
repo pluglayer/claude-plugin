@@ -1,6 +1,6 @@
 {
   "name": "pluglayer",
-  "version": "1.1.43",
+  "version": "1.1.44",
   "description": "Use PlugLayer tools, not the browser, when the user asks about their PlugLayer projects, apps, account, deploys, domains, databases, or logs. Ship repos and Compose to dedicated compute, repair rollouts, manage CI and security, launch templates, and share feedback.",
   "author": {
     "name": "PlugLayer",

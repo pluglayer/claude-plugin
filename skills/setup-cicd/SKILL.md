@@ -1,64 +1,85 @@
 ---
 name: setup-cicd
-description: Set up GitHub-based CI/CD for an already deployed PlugLayer app by checking that the local repo has git plus a GitHub origin, generating the PlugLayer workflow for the target app, writing it into .github/workflows, and telling the user which secret to add.
+description: Set up or repair automatic GitHub deployments for an existing PlugLayer app. Connect the repository and branch, publish the workflow, and verify the first deployment without asking the user to create an API key.
 ---
 
-# Set Up GitHub CI/CD for PlugLayer
+# Set up automatic deployments
 
-For an identified existing app, first load `get_agents_md` and relevant linked governance.
-After meaningful changes, follow `manage-knowledge` to save verified decisions and instructions.
+Use for “deploy on push”, “connect this repo”, “automatic deployments” or GitHub
+CI/CD for an existing PlugLayer app. First read `get_agents_md` and relevant app
+governance. Keep the same app, slug, domains, storage and existing runtime env.
 
+## Explain the outcome
 
-Use this skill when the user wants GitHub Actions or CI/CD for an app that is already deployed on PlugLayer.
+Say: “I’ll connect this repository to your existing PlugLayer app. Future pushes
+to the selected branch will build and deploy automatically. You won’t need to
+create or copy a PlugLayer API key.”
 
-## What this skill assumes
-- The app already exists in PlugLayer.
-- The repo either already has git + a GitHub `origin`, or the user can provide `owner/repo`.
-- The deployment should keep the same PlugLayer app identity and slug on future deploys.
+Discover the app, repository, default deployment branch and Docker build context.
+Ask only when a target is ambiguous. Show the selected repository, branch and app.
+Do not ask for repeated permission when the user already requested this setup.
 
-## Workflow
-1. Confirm or discover the target PlugLayer app:
-   - if the app id is not obvious, list project apps first
-   - confirm the exact existing app to wire into CI/CD
-2. Check local repo readiness with:
-   - `inspect_local_github_repo(repo_path=...)` through PlugLayer MCP (uses the bundled connector; no separate Python installation)
-3. If the tool reports a valid GitHub repo/origin:
-   - use that `repo_slug`
-   - otherwise ask for `owner/repo`
-4. Call the PlugLayer MCP CI/CD tool:
-   - `generate_github_actions(project_id=..., app_id=..., repo=...)`
-5. Write the returned YAML to:
-   - `.github/workflows/deploy-pluglayer.yml`
-   - the generated workflow should use the public reusable actions repo `pluglayer/actions`
-6. Tell the user to add this GitHub secret:
-   - required:
-     - `PLUGLAYER_API_KEY`
-   - optional:
-     - `PLUGLAYER_API_URL` which defaults to `https://api.pluglayer.com`
-     - `PLUGLAYER_BUILD_ENV_JSON` as a JSON object of build-time env vars/build args to inject during image build
-     - `PLUGLAYER_ENV_JSON` as a masked JSON object of runtime env vars to merge before the final restart
-   - tell them the generated workflow already contains the resolved `app_id`, so they do not need a `PLUGLAYER_APP_ID` secret
-7. Explain what the pipeline does:
-   - serializes deploys per app with a `concurrency` group so two pushes never run overlapping rollouts against the same app
-   - builds a multi-arch OCI archive
-   - uploads it to PlugLayer for the same app id through `/v1/plugin/apps/{app_id}/upload-image`
-   - injects CI-provided build env vars into the image build if present
-   - securely imports optional runtime env vars and restarts the same app so it rolls out the newly uploaded image
-   - waits for the rollout task to finish and fails the job with the real rollout error if the task fails
-   - keeps the existing slug unchanged
+## One-time setup
 
-## Reusable actions reference (`pluglayer/actions@main`)
-- `github/build-oci-image`: builds a multi-arch OCI archive (`context`, `dockerfile`, `image_name`, `image_tag`, `archive_path`, `platforms`, `build_env_json`) → `archive_path`
-- `github/upload-image-to-pluglayer`: uploads the archive to the same app id with transient-failure retries (`api_token`, `app_id`, `archive_path`, `image_tag`, `registry_id`) → `mirrored_image`, `app_id`
-- `github/redeploy-pluglayer-app`: queues the redeploy and polls the rollout task until it completes or fails (`api_token`, `app_id`, `wait_for_completion` default true, `wait_timeout_seconds` default 900, `poll_interval_seconds` default 10) → `task_id`, `final_status`
-- `github/apply-env-and-restart`: securely imports and merges/replaces env vars, restarts or redeploys, and waits for the queued task (`api_token`, `app_id`, exactly one of `env_json`, `env_text`, or `env_file`, optional `env_format`, `merge`, `restart_mode`, `redeploy_strategy`, plus wait inputs) → `task_id`, `final_status`. Prefer masked `env_json`; `env_file` must be an explicit UTF-8 runner file and must never be a committed production secret file.
+1. Use the existing PlugLayer OAuth MCP connection. Check the owner can configure
+   this app. Read `get_github_deployment(app_id)` before changing a connection.
+2. Inspect the repository in the **user's agent workspace**, using local Git or
+   its connected GitHub tools. Hosted MCP cannot inspect a local path on the
+   user's machine; do not use hosted `inspect_local_github_repo` for that.
+3. Reuse available GitHub access. Read the exact repository name, numeric
+   repository ID, numeric owner ID and default branch from GitHub's authenticated
+   repository metadata. With local GitHub CLI:
+   `gh api repos/OWNER/REPO --jq '{repository:.full_name,repository_id:.id,repository_owner_id:.owner.id,branch:.default_branch,push:.permissions.push}'`.
+   Use IDs as strings in MCP calls. Check permission to publish workflow changes.
+4. If GitHub authentication is missing and the CLI is available, explain:
+   “I need GitHub access to publish your deployment workflow. I’ll open GitHub
+   sign-in. Complete the browser authorization, and I’ll continue setup.”
+   Use `gh auth login --web --scopes workflow`. The user may enter a temporary
+   device code directly on GitHub. Never request a personal access token, copy
+   an OAuth token, run `gh auth token`, or put credentials into chat or a workflow.
+   Existing insufficient CLI scopes can use `gh auth refresh --scopes workflow`.
+   A hosted agent needs its GitHub connector; if unavailable, report that precise
+   prerequisite. Do not silently install local tooling or invent repository IDs.
+5. Call `configure_github_deployment(app_id, repository, repository_id,
+   repository_owner_id, branch, workflow_path, expected_revision)`.
+   For an existing change, use the revision returned by the read; inspect any
+   conflict rather than overwriting it. This grants persistent deploy access to
+   that repository's push workflow. Use a unique workflow filename per app.
+6. Call `generate_github_actions(project_id, app_id, repo=repository)`.
+   Use the returned workflow, path and pinned official actions. No required
+   `PLUGLAYER_API_KEY` secret exists in this flow. A backend “release pending”
+   response is an actual blocker; do not invent action refs or fall back to
+   asking the user for a broad API key.
+7. Write the workflow safely. Preserve unrelated jobs; replace an existing
+   PlugLayer deployment job coherently so two workflows cannot deploy the app
+   on the same push. Set the correct Docker context/Dockerfile for monorepos.
+   Preserve `id-token: write`, `contents: read`, the configured exact branch,
+   official action pins and one concurrency group per app. This first version
+   supports direct push workflows; do not add environments, reusable workflow
+   delegation, PR triggers or `pull_request_target`.
+8. Commit/push or create a PR using existing authorization and repository rules.
+   Respect required reviews; never bypass branch protection. Explain any
+   remaining user merge action. Ordinary later pushes need no user approval.
+9. Watch the first GitHub run and read `get_github_deployment` afterward.
+   Require both a successful workflow and completed PlugLayer rollout. A verified
+   identity alone does not mean the deployment succeeded. Use the recorded run,
+   task and app status to diagnose failures without exposing secrets.
 
-## Notes
-- Do not create a brand-new PlugLayer app for CI/CD setup.
-- Do not change the slug unless the user explicitly asks.
-- Prefer this skill after the initial deploy already succeeded.
-- If the user changed code, CI/CD should roll forward with a new image tag, not a plain restart.
-- Do not hand-roll task polling loops, retry loops, or status-check curls in the workflow: the reusable actions own transport retries, task polling, and failure detail (including pod states). A workflow step should only pass inputs and read outputs.
-- If a repo already contains a hand-rolled PlugLayer deploy workflow (manual `curl` + `jq` polling), offer to replace it with the reusable actions instead of patching it.
-- For multi-app monorepos, give each app its own job calling the same reusable actions, and keep one `concurrency` group per app id so parallel apps deploy in parallel but each app's rollouts stay serialized.
-- If a CI redeploy fails with `did not become ready within <N>s` while the task itself finished much faster than `<N>` and pod states show `Failed x1, Pending x1`, treat it as transient recreate-rollout noise (the old pod dying while the new one was still pulling the image): retry the job once before changing anything in the app or workflow.
+## Report the actual state
+
+- Local only: “The workflow is prepared locally. Automatic deployment will become
+  active after it is pushed and the first run succeeds.”
+- PR open: give its link and explain the required merge.
+- Awaiting first run: say the connection is configured but deployment is unverified.
+- Verified success: “Automatic deployments are active: OWNER/REPO → APP, on pushes
+  to BRANCH. The first deployment passed. Future runs need no login or approval.”
+- Failure: state whether setup, authentication, build, upload or rollout failed,
+  and the next concrete action. Never label a queued task successful.
+
+Optional `PLUGLAYER_BUILD_ENV_JSON` and `PLUGLAYER_ENV_JSON` are application
+configuration, not PlugLayer authentication. Request them only when the app
+needs them; preserve existing runtime variables by default.
+
+For repair/disconnection and implementation details, read
+[the reference](references/github-oidc.md). After meaningful changes, use
+`manage-knowledge` to save verified app decisions and setup instructions.
