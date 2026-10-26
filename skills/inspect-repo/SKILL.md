@@ -5,6 +5,10 @@ description: Inspect a local codebase to determine what should be deployed, whet
 
 # Inspect Repo for Deployment
 
+For an identified existing app, first load `get_agents_md` and relevant linked governance.
+After meaningful changes, follow `manage-knowledge` to save verified decisions and instructions.
+
+
 Use this skill when the user asks to deploy an app from a local codebase, wants to know whether the repo is deployable, or needs help choosing image vs docker-compose.
 
 ## Goals

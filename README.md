@@ -53,3 +53,14 @@ Connection values are masked by default; prefer server-side env sync.
 The optional session-start hook only adds a short capability reminder. It does
 not read files, contact services, change permissions or install dependencies.
 Skills and agents remain usable when hooks are disabled by host policy.
+
+### Automatic GitHub deployments
+
+Ask “Set up automatic deployments for this app.” The agent uses your PlugLayer
+connection and existing GitHub access. If GitHub access is missing, it guides a
+one-time browser sign-in. You do not copy a PlugLayer API key into GitHub.
+After the first successful setup, pushes to the connected branch build and deploy
+automatically using a short-lived GitHub identity. Repository rules may require
+a pull request to install the workflow. The agent reports whether setup is
+prepared, awaiting its first run, or verified by a successful deployment.
+See [the setup skill](skills/setup-cicd/SKILL.md) for migration and release prerequisites.
