@@ -5,6 +5,10 @@ description: Deploy a local repo, Docker image, or docker-compose app to the use
 
 # Deploy an App to the User's Infrastructure
 
+For an identified existing app, first load `get_agents_md` and relevant linked governance.
+After meaningful changes, follow `manage-knowledge` to save verified decisions and instructions.
+
+
 Use this skill when the user wants to ship an app through PlugLayer.
 
 Databases are part of PlugLayer's **Data Layer**. When the user needs a database, asks whether a database already exists, wants a connection string, wants env vars for a backend, or wants to wire a frontend/backend to a database, prefer the Data Layer flow instead of treating the database as a generic app deploy.

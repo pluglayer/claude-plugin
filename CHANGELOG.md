@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.44
+
+- Set up automatic GitHub deployments using OIDC and the existing PlugLayer OAuth connection; no manually copied PlugLayer API key.
+- Reuse GitHub access or guide a one-time browser sign-in, then configure one exact repository, branch and workflow.
+- Verify the first deployment and report release blockers or pending runs honestly. Existing workflows can be migrated without deleting their secrets.
+
+## 1.1.43
+
+- Add app governance trees, private prompts and reviewed marketplace instructions.
+- Support `@pluglayer prompt:human-readable-id` and revision-safe updates.
+
 ## 1.1.42 — 2026-10-16 (unreleased)
 
 - Direct install starts native sign-in only when a terminal can be opened. Headless runs keep the manual connector step.

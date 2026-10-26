@@ -1,12 +1,14 @@
 ---
 name: use-pluglayer
-description: Use when the user mentions PlugLayer, pluglayer.com, their projects, apps, deploys, domains, databases, logs, compute, or account. Call the PlugLayer tool and answer. Do not use the browser. Do not run setup unless they asked to install, update, or reconnect.
+description: Use when the user mentions PlugLayer, pluglayer.com, their projects, apps, deploys, domains, databases, logs, compute, or account. Call the PlugLayer tool and answer. Also use for governance, My Prompts, and prompt: IDs. Do not use the browser. Do not run setup unless they asked to install, update, or reconnect.
 ---
 
 # When to use PlugLayer
 
 Call the PlugLayer tool. Do not open the website.
 
+- Prompt IDs (`@pluglayer prompt:<slug>`): `apply_prompt`; open `manage-knowledge`
+- App governance/profile or My Prompts: `manage-knowledge`
 - Projects: `list_projects`
 - Apps in one project: `get_apps_by_project`
 - All apps: `list_deployments`
